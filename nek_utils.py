@@ -1,6 +1,51 @@
 # A collection of important functions
 #import re
 
+def set_vertices(elements,nSq,dx,dy):
+    """ Set vertex location for each element. """
+    for j in range(nSq):    # loop through each colume
+        for i in range(nSq):    # loop through each row
+            el = elements[i+j*nSq]
+            el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]  # set vertex coordinates
+            el.y = [j*dy, j*dy, (j+1)*dy, (j+1)*dy]  # set vertex coordinates
+
+def set_bc(elements,nSq):
+    """ Set boundary conditions for each face. """
+    for el in elements:
+        n = el.number
+        if (n == 1 or n == nSq or n == nSq**2-nSq+1 or n == nSq**2):    # corners
+            if (n == 1):  # we are on the first element on the lower left
+                el.bc = ['W  ','E  ','E  ','W  ']
+                el.bc_params = [0, n+1, n+nSq, 0]
+            elif (n == nSq):    # we are on the lower right corner
+                el.bc = ['W  ','W  ','E  ','E  ']
+                el.bc_params = [0, n+1, n+nSq, n-1] 
+            elif (n == nSq**2-nSq+1):     # we are on the upper left corner
+                el.bc = ['E  ','E  ','W  ','W  ']
+                el.bc_params = [n-nSq, n+1, 0, 0]
+            elif (n == nSq**2):   # last element on the upper right
+                el.bc = ['E  ','W  ','W  ','E  ']
+                el.bc_params = [n-nSq, 0, 0, n-1]
+            continue
+        elif (n > nSq**2-nSq or n%nSq == 0 or n < nSq or n%(nSq+1) == 0):  # edges
+            if (n > nSq**2-nSq):   # northern row
+                el.bc = ['E  ','E  ','W  ','E  ']
+                el.bc_params = [n-nSq, n+1, 0, n-1]
+            elif ((n%nSq) == 0): # eastern column
+                el.bc = ['E  ','W  ','E  ','E  ']
+                el.bc_params = [n-nSq, 0, n+nSq, n-1]
+            elif (n < nSq):  # southern row
+                el.bc = ['W  ','E  ','E  ','E  ']
+                el.bc_params = [0, n+1, n+nSq, n-1]
+            elif ((n%(nSq+1)) == 0):  #  western column
+                el.bc = ['E  ','E  ','E  ','W  ']
+                el.bc_params = [n-nSq, n+1, n+nSq, 0]
+            continue
+        else:   # interior
+            el.bc = ['E  ','E  ','E  ','E  ']
+            el.bc_params = [n-nSq, n+1, n+nSq, n-1]
+
+
 def write_mesh(n_tot, spatial_dim, elements):
     """ Write vertex locations to rea file. """
 
@@ -33,6 +78,9 @@ def write_mesh(n_tot, spatial_dim, elements):
     f = open('base.rea','w')
     f.write(contents)
     f.close()
+
+def write_bc(elements):
+    """ Write boundary conditions to rea file. """
 
 
 def rea_skel():
