@@ -1,92 +1,273 @@
 # A collection of important functions
-#import re
 import sys
 import pdb
 
-def set_vertices(elements,nSq,dx,dy):
+def set_vertices(elements,nR,nSq,dx,dy):
     """ Set vertex location for each element. """
-    for el in elements:
-        i = (el.number-1)%nSq     # column number
-        j = int((el.number-1)/nSq)    # row number
-#    for j in range(nSq):    # loop through each column
-#        for i in range(nSq):    # loop through each row
-#            el = elements[i+j*nSq]
-        el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]  # set vertex coordinates
-        el.y = [j*dy, j*dy, (j+1)*dy, (j+1)*dy]  # set vertex coordinates
 
-def set_bc(elements,nSq):
+    for el in elements:
+        if (el.number <= nSq**2):   # we are in the square section
+            i = (el.number-1)%nSq     # column number
+            j = int((el.number-1)/nSq)    # row number
+            el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]  # set vertex coordinates
+            el.y = [j*dy, j*dy, (j+1)*dy, (j+1)*dy]  # set vertex coordinates
+        else:                       # we are in the outer onion like region :-)
+            i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
+            k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
+            j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first
+            if (i < (nSq-1)):  # upper part, not border /
+                el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]
+                el.y = [(j+nSq)*dy, (j+nSq)*dy, (j+1+nSq)*dy, (j+1+nSq)*dy]
+            elif (i > nSq):     # lower part, not border /
+                el.x = [(j+nSq)*dx, (j+1+nSq)*dx, (j+1+nSq)*dx, (j+nSq)*dx]
+                el.y = [k*dy, k*dy, (k+1)*dy, (k+1)*dy]
+            elif (i == (nSq-1)):    # upper part at border /
+                el.x = [i*dx, (i+1+j)*dx, (i+1+(j+1))*dx, i*dx]
+                el.y = [(j+nSq)*dy, (j+nSq)*dy, (j+1+nSq)*dy, (j+1+nSq)*dy]
+            elif (i == nSq):    # lower part at border /
+                el.x = [(j+nSq)*dx, (j+nSq+1)*dx, (j+nSq+1)*dx, (j+nSq)*dx]
+                el.y = [k*dy, k*dy, (k+1+(j+1))*dy, (k+1+j)*dy]
+
+
+def set_bc(elements,nR,nSq):
     """ Set boundary conditions for each face. """
 
     for el in elements:
         n = el.number
-        position = check_position(n, nSq)
-        if (position == 'lowleft'):
-            el.bc = ['W  ','E  ','E  ','W  ']
-            el.bc_con_el = [0, n+1, n+nSq, 0]
-            el.bc_con_f = [0, 4, 1, 0]
-        elif (position == 'lowright'):
-            el.bc = ['W  ','W  ','E  ','E  ']
-            el.bc_con_el = [0, n+1, n+nSq, n-1] 
-            el.bc_con_f = [0, 4, 1, 2]
-        elif (position == 'upleft'):
-            el.bc = ['E  ','E  ','W  ','W  ']
-            el.bc_con_el = [n-nSq, n+1, 0, 0]           
-            el.bc_con_f = [3, 4, 0, 0]
-        elif (position == 'upright'):
-            el.bc = ['E  ','W  ','W  ','E  ']
-            el.bc_con_el = [n-nSq, 0, 0, n-1]
-            el.bc_con_f = [3, 0, 0, 2]
-        elif (position == 'northrow'):
-            el.bc = ['E  ','E  ','W  ','E  ']
-            el.bc_con_el = [n-nSq, n+1, 0, n-1]
-            el.bc_con_f = [3, 4, 0, 2]
-        elif (position == 'eastcol'):
-            el.bc = ['E  ','W  ','E  ','E  ']
-            el.bc_con_el = [n-nSq, 0, n+nSq, n-1]
-            el.bc_con_f = [3, 0, 1, 2]
-        elif (position == 'southrow'):
-            el.bc = ['W  ','E  ','E  ','E  ']
-            el.bc_con_el = [0, n+1, n+nSq, n-1]
-            el.bc_con_f = [0, 4, 1, 2]
-        elif (position == 'westcol'):
-            el.bc = ['E  ','E  ','E  ','W  ']
-            el.bc_con_el = [n-nSq, n+1, n+nSq, 0]
-            el.bc_con_f = [3, 4, 1, 0]
-        elif (position == 'internal'):
-            el.bc = ['E  ','E  ','E  ','E  ']
-            el.bc_con_el = [n-nSq, n+1, n+nSq, n-1]
-            el.bc_con_f = [3, 4, 1, 2]
-        else:
-            print('position of element not found!')
-            sys.exit(1)
-          
-def check_position(number, nSq):
-    """ Check position of the given element. """
-    n = number
-    if (n == 1 or n == nSq or n == nSq**2-nSq+1 or n == nSq**2):    # corners
-        if (n == 1):  # we are on the first element on the lower left
-            pos = 'lowleft'
-        elif (n == nSq):    # we are on the lower right corner
-            pos = 'lowright'
-        elif (n == nSq**2-nSq+1):     # we are on the upper left corner
-            pos = 'upleft'
-        elif (n == nSq**2):   # last element on the upper right
-            pos = 'upright'
-        return pos
-    elif (n > nSq**2-nSq or n%nSq == 0 or n < nSq or n%(nSq+1) == 0):  # edges
-        if (n > nSq**2-nSq):   # northern row
-            pos = 'northrow'
-        elif ((n%nSq) == 0): # eastern column
-            pos = 'eastcol'
-        elif (n < nSq):  # southern row
-            pos = 'southrow'
-        elif ((n%(nSq+1)) == 0):  #  western column
-            pos = 'westcol'
-        return pos
-    else:   # interior
-        pos = 'internal'
-        return pos
+#         position = check_position(n, nSq)
+        check_position(el,nR,nSq)
+        position = el.pos
 
+        i = ((n-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
+        k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
+        j = int(((n-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first
+
+        if (n <= nSq**2):   # we are in the square section
+            if (position == 'sq_low_left'):
+                el.bc = ['W  ','E  ','E  ','W  ']
+                el.bc_con_el = [0, n+1, n+nSq, 0]
+                el.bc_con_f = [0, 4, 1, 0]
+            elif (position == 'sq_low_right'):
+                el.bc = ['W  ','W  ','E  ','E  ']
+                el.bc_con_el = [0, n+1, n+nSq, n-1] 
+                el.bc_con_f = [0, 4, 1, 2]
+            elif (position == 'sq_up_left'):
+                el.bc = ['E  ','E  ','W  ','W  ']
+                el.bc_con_el = [n-nSq, n+1, 0, 0]           
+                el.bc_con_f = [3, 4, 0, 0]
+            elif (position == 'sq_up_right'):
+                el.bc = ['E  ','W  ','W  ','E  ']
+                el.bc_con_el = [n-nSq, 0, 0, n-1]
+                el.bc_con_f = [3, 0, 0, 2]
+            elif (position == 'sq_north_row'):
+                el.bc = ['E  ','E  ','W  ','E  ']
+                el.bc_con_el = [n-nSq, n+1, 0, n-1]
+                el.bc_con_f = [3, 4, 0, 2]
+            elif (position == 'sq_east_col'):
+                el.bc = ['E  ','W  ','E  ','E  ']
+                el.bc_con_el = [n-nSq, 0, n+nSq, n-1]
+                el.bc_con_f = [3, 0, 1, 2]
+            elif (position == 'sq_south_row'):
+                el.bc = ['W  ','E  ','E  ','E  ']
+                el.bc_con_el = [0, n+1, n+nSq, n-1]
+                el.bc_con_f = [0, 4, 1, 2]
+            elif (position == 'sq_west_col'):
+                el.bc = ['E  ','E  ','E  ','W  ']
+                el.bc_con_el = [n-nSq, n+1, n+nSq, 0]
+                el.bc_con_f = [3, 4, 1, 0]
+            elif (position == 'sq_internal'):
+                el.bc = ['E  ','E  ','E  ','E  ']
+                el.bc_con_el = [n-nSq, n+1, n+nSq, n-1]
+                el.bc_con_f = [3, 4, 1, 2]
+            else:
+                print('position of element not found!')
+                sys.exit(1)
+        else:                       # we are in the outer onion like region :-)
+            if ('on_up' in position):   # we are in the upper onion part
+                if (position == 'on_up_south_sq_west_y'):
+                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.bc_con_el = [n-nSq, n+1, n+nSq, 0]
+                    el.bc_con_f = [3, 4, 1, 0]
+                elif (position == 'on_up_south_sq_east_edge'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n-nSq, n+1, n+nSq, n-1]
+                    el.bc_con_f = [3, 4, 1, 2]
+                elif (position == 'on_up_east_edge'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n-nSq, n+1, n+nSq, n-1]
+                    el.bc_con_f = [3, 3, 1, 2]
+                elif (position == 'on_up_south_sq'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n-nSq, n+1, n+nSq, n-1]
+                    el.bc_con_f = [3, 3, 1, 2]
+                elif (position == 'on_up_west_y_north_wall'):
+                    el.bc = ['E  ','E  ','W  ','W  ']
+                    el.bc_con_el = [n-nSq, n+1, 0, 0]
+                    el.bc_con_f = [3, 4, 0, 0]
+                elif (position == 'on_up_west_y'):
+                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.bc_con_el = [n-nSq, n+1, n+nSq, 0]
+                    el.bc_con_f = [3, 4, 1, 0]
+                elif (position == 'on_up_north_wall_east_edge'):
+                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.bc_con_el = [n-nSq, n+1, 0, n-1]
+                    el.bc_con_f = [3, 3, 0, 2]
+                elif (position == 'on_up_north_wall'):
+                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.bc_con_el = [n-nSq, n+1, 0, n-1]
+                    el.bc_con_f = [3, 4, 0, 2]
+                elif (position == 'on_up_intern'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n-nSq, n+1, n+nSq, n-1]
+                    el.bc_con_f = [3, 4, 1, 2]
+            elif ('on_low' in position):    # we are in the lower onion part
+                if (position == 'on_low_west_sq_south_x'):
+                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.bc_con_el = [0, n+nSq*2, n-1, (k+1)*nSq]
+                    el.bc_con_f = [0, 4, 1, 2]
+                elif (position == 'on_low_west_sq_north_edge'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n+1, n+nSq*2, n-1, (k+1)*nSq]
+                    el.bc_con_f = [3, 4, 2, 2]
+                elif (position == 'on_low_west_sq'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n+1, n+nSq*2, n-1, (k+1)*nSq]
+                    el.bc_con_f = [3, 4, 1, 2]
+                elif (position == 'on_low_south_x_east_wall'):
+                    el.bc = ['W  ','W  ','E  ','E  ']
+                    el.bc_con_el = [0, 0, n-1, n-nSq*2]
+                    el.bc_con_f = [0, 0, 1, 2]
+                elif (position == 'on_low_south_x'):
+                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.bc_con_el = [0, n+nSq*2, n-1, n-nSq*2]
+                    el.bc_con_f = [0, 4, 1, 2]
+                elif (position == 'on_low_east_wall_north_edge'):
+                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.bc_con_el = [n+1, 0, n-1, n-nSq*2]
+                    el.bc_con_f = [3, 0, 2, 2]
+                elif (position == 'on_low_east_wall'):
+                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.bc_con_el = [n+1, 0, n-1, n-nSq*2]
+                    el.bc_con_f = [3, 0, 1, 2]
+                elif (position == 'on_low_north_edge'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n+1, n+nSq*2, n-1, n-nSq*2]
+                    el.bc_con_f = [3, 2, 2, 2]
+                elif (position == 'on_low_intern'):
+                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.bc_con_el = [n+1, n+nSq*2, n-1, n-nSq*2]
+                    el.bc_con_f = [3, 4, 1, 2]
+            else:
+                print('position assignment was not correct!')
+                os.exit(3)
+
+    
+def check_position(element, nR, nSq):
+    """ Check position of the given element within the square region. """
+
+    el = element
+    n = el.number
+    if (n <= nSq**2):   # we are in the square section
+        if (n == 1 or n == nSq or n == nSq**2-nSq+1 or n == nSq**2):    # corners
+            if (n == 1):  # we are on the first element on the lower left
+                el.pos = 'sq_low_left'
+            elif (n == nSq):    # we are on the lower right corner
+                el.pos = 'sq_low_right'
+            elif (n == nSq**2-nSq+1):     # we are on the upper left corner
+                el.pos = 'sq_up_left'
+            elif (n == nSq**2):   # last element on the upper right
+                el.pos = 'sq_up_right'
+            return
+        elif (n > nSq**2-nSq or n%nSq == 0 or n < nSq or n%(nSq+1) == 0):  # edges
+            if (n > nSq**2-nSq):   # northern row
+                el.pos = 'sq_north_row'
+            elif ((n%nSq) == 0): # eastern column
+                el.pos = 'sq_east_col'
+            elif (n < nSq):  # southern row
+                el.pos = 'sq_south_row'
+            elif ((n%(nSq+1)) == 0):  #  western column
+                el.pos = 'sq_west_col'
+            return
+        else:   # interior
+            el.pos = 'sq_internal'
+            return
+    else:   # we are in the onion region
+        i = ((n-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
+        k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
+        j = int(((n-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first
+        if (i<nSq):    ## Upper part
+            ## 1-sided special treatment
+            # southern faces with square section
+            if (j==0):
+                if (i==0):  # south square and west y=0
+                    el.pos = 'on_up_south_sq_west_y'
+                    return
+                elif (i==nSq-1):    # south square and east edge    
+                    el.pos = 'on_up_south_sq_east_edge'
+                    return
+                else:
+                    el.pos = 'on_up_south_sq'
+                    return
+            # western faces with y=0
+            elif (i==0):
+                if (j==nR-nSq-1):   # western face y=0 and northern wall
+                    el.pos = 'on_up_west_y_north_wall'
+                    return
+                else:
+                    el.pos = 'on_up_west_y'
+                    return
+            # northern faces at wall
+            elif (j==(nR-nSq)-1):
+                if (i==nSq-1):  # north wall east edge
+                    el.pos = 'on_up_north_wall_east_edge'
+                    return
+                else:
+                    el.pos = 'on_up_north_wall'
+                    return
+            elif (i==nSq-1):    # east edge
+                el.pos = 'on_up_east_edge'
+                return
+            ## internal upper part
+            else:
+                el.pos = 'on_up_intern'
+                return
+        elif (k<nSq):   ## Lower part
+            # western faces with square section
+            if (j==0):
+                if (k==0):  # western face square and south x=0
+                    el.pos = 'on_low_west_sq_south_x'
+                    return
+                elif (k==nSq-1):    # western face square and northern edge
+                    el.pos = 'on_low_west_sq_north_edge'
+                    return
+                else:
+                    el.pos = 'on_low_west_sq'
+                    return
+            # southern faces with x=0
+            elif (k==0):
+                if (j==nR-nSq-1):   # south x=0 east wall
+                    el.pos = 'on_low_south_x_east_wall'
+                    return
+                else:
+                    el.pos = 'on_low_south_x'
+                    return
+            # eastern faces at wall
+            elif (j==(nR-nSq)-1):
+                if (k==nSq-1):   # east wall north edge
+                    el.pos = 'on_low_east_wall_north_edge'
+                elif (k==nSq-1):     # north edge
+                    el.pos = 'on_low_north_edge'
+                    return
+                else:
+                    el.pos = 'on_low_east_wall'
+                    return
+                        ## interal lower part
+            else:
+                el.pos = 'on_low_intern'
+                return
+        else:
+            print('Error in Position onion region.')
+            os.exit(2)
 
 
 def write_mesh(elements):
@@ -124,7 +305,7 @@ def write_mesh(elements):
     f.write(contents)
     f.close()
 
-def write_bc(elements):
+def write_bc(elements, nR, nSq):
     """ Write boundary conditions to rea file. """
 
     bc = []
@@ -140,18 +321,19 @@ def write_bc(elements):
     f = open('base.rea','r')
     contents = f.readlines()
     f.close()
-
+ 
     # find row for bc data
     line_bc = 0
     while (not 'FLUID BOUNDARY CONDITIONS' in contents[line_bc]):
         line_bc = line_bc + 1
-
+ 
     # and write it to rea file
     contents[line_bc+1:line_bc+1] = bc
     contents = "".join(contents)
     f = open('base.rea','w')
     f.write(contents)
     f.close()
+
 
 
 def rea_skel():

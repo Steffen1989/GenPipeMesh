@@ -22,16 +22,18 @@ import re
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
 nR = 8
-nPhi = 64       # nel in circumferential direction
+#nSq = 19
+nSq = 4         # nel in square region along one side of the square
 
 # Define global variables here:
 #----------------------------------------------------------------------
-nSq = nPhi/8    # nel in square region along one side of the square
-if ( (nPhi % 8) != 0 ):
-    print("Number of circumferential elements needs to be a multiple of 8")
-    sys.exit(1)
-else:
-    nSq = int(nSq)
+nPhi = nSq*8    # nel in circumferential direction
+#nSq = nPhi/8    # nel in square region along one side of the square
+#if ( (nPhi % 8) != 0 ):
+#    print("Number of circumferential elements needs to be a multiple of 8")
+#    sys.exit(1)
+#else:
+#    nSq = int(nSq)
 dx = R/nSq       # length of one element
 dy = R/nSq       # height of one element
 n_tot = nR * nPhi   # total number of elements
@@ -46,6 +48,8 @@ class Element:
         # vertices
         self.x = []
         self.y = []
+        # position within quarter section
+        self.pos = ''
 
         # boundary conditions for each face
         # convention is [south, east, north, west]
@@ -57,13 +61,22 @@ class Element:
 
 el_list = []    # list of all elements
 number = 1
+# Populate list of elements: first, the square region
 for i in range(nSq):
     for j in range(nSq):
-        # populate list of elements
         el = Element()
         el.number = number
         el_list.append(el)
         number = number + 1
+# Populate list of elements: second, the curved region outside
+for i in range(nR-nSq):     # loop through each onion like layer outwards
+    for j in range(nSq*2): # loop in clockwise direction through each layer
+        el = Element()
+        el.number = number
+        el_list.append(el)
+        number = number + 1
+
+
 
 ## A: Generate the mesh
 #----------------------------------------------------------------------
@@ -71,11 +84,11 @@ for i in range(nSq):
 #----------------------------------------------------------------------
 ## A.1.1: Set vertex positions of elements
 #----------------------------------------------------------------------
-nek_utils.set_vertices(el_list,nSq,dx,dy)
+nek_utils.set_vertices(el_list,nR,nSq,dx,dy)
 
 ## A.1.2: Set boundary conditions for faces 
 #----------------------------------------------------------------------
-nek_utils.set_bc(el_list,nSq)
+nek_utils.set_bc(el_list,nR,nSq)
 
 ## A.1.3: Set curved edges
 #----------------------------------------------------------------------
@@ -98,7 +111,6 @@ nek_utils.rea_skel()
 
 ## B.1: Write vertex positions
 #----------------------------------------------------------------------
-n_tot = nSq
 nek_utils.write_mesh(el_list)
 
 ## B.2: Write curved edges
@@ -106,7 +118,7 @@ nek_utils.write_mesh(el_list)
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
 #pdb.set_trace()
-nek_utils.write_bc(el_list)
+nek_utils.write_bc(el_list, nR, nSq)
 
 
 
