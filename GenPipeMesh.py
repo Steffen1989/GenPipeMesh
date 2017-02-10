@@ -20,8 +20,9 @@ import re
 # Input Variables
 #----------------------------------------------------------------------
 R = 0.5         # radius
-nR = 28         # nel in radial direction
-nPhi = 152       # nel in circumferential direction
+#nR = 28         # nel in radial direction
+nR = 8
+nPhi = 64       # nel in circumferential direction
 
 # Define global variables here:
 #----------------------------------------------------------------------
@@ -51,7 +52,8 @@ class Element:
         self.bc = []
 
         # boundary condition parameters
-        self.bc_params = []
+        self.bc_con_f = []  # connected face: 1: south, 2:east, 3:north, 4:west
+        self.bc_con_el = []  # number of the connected element
 
 el_list = []    # list of all elements
 number = 1
@@ -77,6 +79,8 @@ nek_utils.set_bc(el_list,nSq)
 
 ## A.1.3: Set curved edges
 #----------------------------------------------------------------------
+
+
 ## A.2: Generate the complete mesh 
 #----------------------------------------------------------------------
 ## A.2.1: Set vertex positions
@@ -94,12 +98,15 @@ nek_utils.rea_skel()
 
 ## B.1: Write vertex positions
 #----------------------------------------------------------------------
-nek_utils.write_mesh(nSq**2, 2, elem_sq)
+n_tot = nSq
+nek_utils.write_mesh(el_list)
 
 ## B.2: Write curved edges
 #----------------------------------------------------------------------
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
+#pdb.set_trace()
+nek_utils.write_bc(el_list)
 
 
 

@@ -1,53 +1,112 @@
 # A collection of important functions
 #import re
+import sys
+import pdb
 
 def set_vertices(elements,nSq,dx,dy):
     """ Set vertex location for each element. """
-    for j in range(nSq):    # loop through each colume
-        for i in range(nSq):    # loop through each row
-            el = elements[i+j*nSq]
-            el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]  # set vertex coordinates
-            el.y = [j*dy, j*dy, (j+1)*dy, (j+1)*dy]  # set vertex coordinates
+    for el in elements:
+        i = (el.number-1)%nSq     # column number
+        j = int((el.number-1)/nSq)    # row number
+#    for j in range(nSq):    # loop through each column
+#        for i in range(nSq):    # loop through each row
+#            el = elements[i+j*nSq]
+        el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]  # set vertex coordinates
+        el.y = [j*dy, j*dy, (j+1)*dy, (j+1)*dy]  # set vertex coordinates
 
 def set_bc(elements,nSq):
     """ Set boundary conditions for each face. """
+
     for el in elements:
         n = el.number
-        if (n == 1 or n == nSq or n == nSq**2-nSq+1 or n == nSq**2):    # corners
-            if (n == 1):  # we are on the first element on the lower left
-                el.bc = ['W  ','E  ','E  ','W  ']
-                el.bc_params = [0, n+1, n+nSq, 0]
-            elif (n == nSq):    # we are on the lower right corner
-                el.bc = ['W  ','W  ','E  ','E  ']
-                el.bc_params = [0, n+1, n+nSq, n-1] 
-            elif (n == nSq**2-nSq+1):     # we are on the upper left corner
-                el.bc = ['E  ','E  ','W  ','W  ']
-                el.bc_params = [n-nSq, n+1, 0, 0]
-            elif (n == nSq**2):   # last element on the upper right
-                el.bc = ['E  ','W  ','W  ','E  ']
-                el.bc_params = [n-nSq, 0, 0, n-1]
-            continue
-        elif (n > nSq**2-nSq or n%nSq == 0 or n < nSq or n%(nSq+1) == 0):  # edges
-            if (n > nSq**2-nSq):   # northern row
-                el.bc = ['E  ','E  ','W  ','E  ']
-                el.bc_params = [n-nSq, n+1, 0, n-1]
-            elif ((n%nSq) == 0): # eastern column
-                el.bc = ['E  ','W  ','E  ','E  ']
-                el.bc_params = [n-nSq, 0, n+nSq, n-1]
-            elif (n < nSq):  # southern row
-                el.bc = ['W  ','E  ','E  ','E  ']
-                el.bc_params = [0, n+1, n+nSq, n-1]
-            elif ((n%(nSq+1)) == 0):  #  western column
-                el.bc = ['E  ','E  ','E  ','W  ']
-                el.bc_params = [n-nSq, n+1, n+nSq, 0]
-            continue
-        else:   # interior
+        position = check_position(n, nSq)
+        if (position == 'lowleft'):
+            el.bc = ['W  ','E  ','E  ','W  ']
+            el.bc_con_el = [0, n+1, n+nSq, 0]
+            el.bc_con_f = [0, 4, 1, 0]
+        elif (position == 'lowright'):
+            el.bc = ['W  ','W  ','E  ','E  ']
+            el.bc_con_el = [0, n+1, n+nSq, n-1] 
+            el.bc_con_f = [0, 4, 1, 2]
+        elif (position == 'upleft'):
+            el.bc = ['E  ','E  ','W  ','W  ']
+            el.bc_con_el = [n-nSq, n+1, 0, 0]           
+            el.bc_con_f = [3, 4, 0, 0]
+        elif (position == 'upright'):
+            el.bc = ['E  ','W  ','W  ','E  ']
+            el.bc_con_el = [n-nSq, 0, 0, n-1]
+            el.bc_con_f = [3, 0, 0, 2]
+        elif (position == 'northrow'):
+            el.bc = ['E  ','E  ','W  ','E  ']
+            el.bc_con_el = [n-nSq, n+1, 0, n-1]
+            el.bc_con_f = [3, 4, 0, 2]
+        elif (position == 'eastcol'):
+            el.bc = ['E  ','W  ','E  ','E  ']
+            el.bc_con_el = [n-nSq, 0, n+nSq, n-1]
+            el.bc_con_f = [3, 0, 1, 2]
+        elif (position == 'southrow'):
+            el.bc = ['W  ','E  ','E  ','E  ']
+            el.bc_con_el = [0, n+1, n+nSq, n-1]
+            el.bc_con_f = [0, 4, 1, 2]
+        elif (position == 'westcol'):
+            el.bc = ['E  ','E  ','E  ','W  ']
+            el.bc_con_el = [n-nSq, n+1, n+nSq, 0]
+            el.bc_con_f = [3, 4, 1, 0]
+        elif (position == 'internal'):
             el.bc = ['E  ','E  ','E  ','E  ']
-            el.bc_params = [n-nSq, n+1, n+nSq, n-1]
+            el.bc_con_el = [n-nSq, n+1, n+nSq, n-1]
+            el.bc_con_f = [3, 4, 1, 2]
+        else:
+            print('position of element not found!')
+            sys.exit(1)
+          
+def check_position(number, nSq):
+    """ Check position of the given element. """
+    n = number
+    if (n == 1 or n == nSq or n == nSq**2-nSq+1 or n == nSq**2):    # corners
+        if (n == 1):  # we are on the first element on the lower left
+            pos = 'lowleft'
+        elif (n == nSq):    # we are on the lower right corner
+            pos = 'lowright'
+        elif (n == nSq**2-nSq+1):     # we are on the upper left corner
+            pos = 'upleft'
+        elif (n == nSq**2):   # last element on the upper right
+            pos = 'upright'
+        return pos
+    elif (n > nSq**2-nSq or n%nSq == 0 or n < nSq or n%(nSq+1) == 0):  # edges
+        if (n > nSq**2-nSq):   # northern row
+            pos = 'northrow'
+        elif ((n%nSq) == 0): # eastern column
+            pos = 'eastcol'
+        elif (n < nSq):  # southern row
+            pos = 'southrow'
+        elif ((n%(nSq+1)) == 0):  #  western column
+            pos = 'westcol'
+        return pos
+    else:   # interior
+        pos = 'internal'
+        return pos
 
 
-def write_mesh(n_tot, spatial_dim, elements):
+
+def write_mesh(elements):
     """ Write vertex locations to rea file. """
+    
+    mesh = []
+    n_tot = len(elements)
+    spatial_dim = 2
+    mesh.append('{0:10d} {1:10d} {2:10d} NEL,NDIM,NELV\n'.format(n_tot,spatial_dim,n_tot))
+    for el in elements:      # loop through all elements
+        x = el.x
+        y = el.y
+        n = el.number
+
+        mesh.append('{0:>19s} {1:10d} {2:6s}{3:1s}{4:12s}'.format\
+            ('ELEMENT',n,'[    1','a',']  GROUP  0\n'))
+        mesh.append('{0: 10.6f}{1: 14.6f}{2: 14.6f}{3: 14.6f}   {4:s}'.format\
+            (x[0], x[1], x[2], x[3], '\n'))   # x coordinates
+        mesh.append('{0: 10.6f}{1: 14.6f}{2: 14.6f}{3: 14.6f}   {4:s}'.format\
+            (y[0], y[1], y[2], y[3], '\n'))  # y coordinates
 
     f = open('base.rea','r')
     contents = f.readlines()
@@ -58,20 +117,6 @@ def write_mesh(n_tot, spatial_dim, elements):
     while (not 'MESH DATA' in contents[line_mesh]):
             line_mesh = line_mesh + 1
     
-    mesh = list()
-    # write header
-    mesh.append('{0:10d} {1:10d} {2:10d} NEL,NDIM,NELV\n'.format(n_tot,spatial_dim,n_tot))
-    for elem_number in range(n_tot):      # loop through all elements
-        mesh.append('{0:>19s} {1:10d} {2:6s}{3:1s}{4:12s}'.format\
-            ('ELEMENT',elem_number,'[    1','a',']  GROUP  0\n'))
-        x = elements[elem_number].x
-        y = elements[elem_number].y
-        mesh.append('{0: 10.6f}{1: 14.6f}{2: 14.6f}{3: 14.6f}   {4:s}'.format\
-            (x[0], x[1], x[2], x[3], '\n'))   # x coordinates
-        mesh.append('{0: 10.6f}{1: 14.6f}{2: 14.6f}{3: 14.6f}   {4:s}'.format\
-            (y[0], y[1], y[2], y[3], '\n'))  # y coordinates
-    
-    
     # and write it to rea file
     contents[line_mesh+1:line_mesh+1] = mesh
     contents = "".join(contents)
@@ -81,6 +126,32 @@ def write_mesh(n_tot, spatial_dim, elements):
 
 def write_bc(elements):
     """ Write boundary conditions to rea file. """
+
+    bc = []
+    dig_n_tot = len(str(elements[-1].number))   # size of element number
+    for el in elements:
+        for f in range(4):
+            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
+{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
+            .format(boundary=el.bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
+            con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
+            zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+
+    f = open('base.rea','r')
+    contents = f.readlines()
+    f.close()
+
+    # find row for bc data
+    line_bc = 0
+    while (not 'FLUID BOUNDARY CONDITIONS' in contents[line_bc]):
+        line_bc = line_bc + 1
+
+    # and write it to rea file
+    contents[line_bc+1:line_bc+1] = bc
+    contents = "".join(contents)
+    f = open('base.rea','w')
+    f.write(contents)
+    f.close()
 
 
 def rea_skel():
@@ -167,7 +238,6 @@ def rea_skel():
     f.write('   0.00000     P073: \n')
     f.write('   0.00000     P074: \n')
     f.write('   0.00000     P075: \n')
-    f.write('   0.00000     P075: \n')
     f.write('   0.00000     P076: \n')
     f.write('   0.00000     P077: \n')
     f.write('   0.00000     P078: \n')
@@ -233,6 +303,7 @@ def rea_skel():
     f.write('   2.00000       2.00000      -1.00000      -1.00000     XFAC,YFAC,XZERO,YZERO\n')
     f.write('  ***** MESH DATA *****  6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8\n')
     f.write(' ***** CURVED SIDE DATA *****\n')
+    f.write('       0 Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n')
     f.write('  ***** BOUNDARY CONDITIONS *****\n')
     f.write('  ***** FLUID BOUNDARY CONDITIONS *****\n')
     f.write('   ***** NO THERMAL BOUNDARY CONDITIONS *****\n')
