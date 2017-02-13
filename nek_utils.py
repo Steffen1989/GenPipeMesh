@@ -1,33 +1,76 @@
 # A collection of important functions
 import sys
 import pdb
+import numpy as np
 
-def set_vertices(elements,nR,nSq,dx,dy):
+def set_vertices(elements,nR,nSq,dr):
     """ Set vertex location for each element. """
 
     for el in elements:
         if (el.number <= nSq**2):   # we are in the square section
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
-            el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]  # set vertex coordinates
-            el.y = [j*dy, j*dy, (j+1)*dy, (j+1)*dy]  # set vertex coordinates
+            el.x = np.array([i*dr, (i+1)*dr, (i+1)*dr, i*dr])  # set vertex coordinates
+            el.y = np.array([j*dr, j*dr, (j+1)*dr, (j+1)*dr])  # set vertex coordinates
         else:                       # we are in the outer onion like region :-)
             i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
             k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
             j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first
+            rad1 = (j+nSq)*dr    # "radius": constant in ellipse equation
+            rad2 = (j+1+nSq)*dr
             if (i < (nSq-1)):  # upper part, not border /
-                el.x = [i*dx, (i+1)*dx, (i+1)*dx, i*dx]
-                el.y = [(j+nSq)*dy, (j+nSq)*dy, (j+1+nSq)*dy, (j+1+nSq)*dy]
+               el.x = np.array([i*dr, (i+1)*dr, (i+1)*dr, i*dr])
+               if ( j==0 ):  # first layer
+                    el.y[0:2] = [(j+nSq)*dr, (j+nSq)*dr]    # lower edge is not deformed (yet)
+                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
+               else:
+    #                el.y = [(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr]
+    #                el.y = np.array([(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr])
+                    el.y[0:2] = ellipse(1,1,1,el.x[0:2])*rad1
+                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
             elif (i > nSq):     # lower part, not border /
-                el.x = [(j+nSq)*dx, (j+1+nSq)*dx, (j+1+nSq)*dx, (j+nSq)*dx]
-                el.y = [k*dy, k*dy, (k+1)*dy, (k+1)*dy]
+               el.y = np.array([k*dr, k*dr, (k+1)*dr, (k+1)*dr])
+               if (j == 0):    # first layer
+    #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
+                    el.x[0] = (j+nSq)*dr
+                    el.x[3] = (j+nSq)*dr
+                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
+                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
+               else:
+    #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
+                    el.x[0] = ellipse(1,1,1,el.y[0])*rad1
+                    el.x[3] = ellipse(1,1,1,el.y[3])*rad1
+                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
+                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
             elif (i == (nSq-1)):    # upper part at border /
-                el.x = [i*dx, (i+1+j)*dx, (i+1+(j+1))*dx, i*dx]
-                el.y = [(j+nSq)*dy, (j+nSq)*dy, (j+1+nSq)*dy, (j+1+nSq)*dy]
+                el.x = np.array([i*dr, (i+1+j)*dr, (i+1+(j+1))*dr, i*dr])
+                if ( j==0 ):  # first layer
+                    el.y[0:2] = [(j+nSq)*dr, (j+nSq)*dr]    # lower edge is not deformed (yet)
+                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
+                else:
+    #                el.y = np.array([(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr])
+                    el.y[0:2] = ellipse(1,1,1,el.x[0:2])*rad1
+                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
             elif (i == nSq):    # lower part at border /
-                el.x = [(j+nSq)*dx, (j+nSq+1)*dx, (j+nSq+1)*dx, (j+nSq)*dx]
-                el.y = [k*dy, k*dy, (k+1+(j+1))*dy, (k+1+j)*dy]
+#                el.x = np.array([(j+nSq)*dr, (j+nSq+1)*dr, (j+nSq+1)*dr, (j+nSq)*dr])
+                el.y = np.array([k*dr, k*dr, (k+1+(j+1))*dr, (k+1+j)*dr])
+                if (j == 0):    # first layer
+                    el.x[0] = (j+nSq)*dr
+                    el.x[3] = (j+nSq)*dr
+                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
+                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
+                else:
+    #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
+                    el.x[0] = ellipse(1,1,1,el.y[0])*rad1
+                    el.x[3] = ellipse(1,1,1,el.y[3])*rad1
+                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
+                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
 
+
+def ellipse(a,b,c,x):
+    """ Ellipse with x**2/a**2 + y**2/b**2 = c """
+    ret = b*(c-x**2/a**2)**(0.5)
+    return ret
 
 def set_bc(elements,nR,nSq):
     """ Set boundary conditions for each face. """

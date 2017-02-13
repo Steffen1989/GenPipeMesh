@@ -11,7 +11,7 @@
 ## Import modules
 #----------------------------------------------------------------------
 import nek_utils
-#import numpy as np
+import numpy as np
 #import elementmodule 
 import pdb
 import sys
@@ -34,8 +34,7 @@ nPhi = nSq*8    # nel in circumferential direction
 #    sys.exit(1)
 #else:
 #    nSq = int(nSq)
-dx = R/nSq       # length of one element
-dy = R/nSq       # height of one element
+dr = R/nR       # length of one element
 n_tot = nR * nPhi   # total number of elements
 spatial_dim = 2     # spatial dimension
 
@@ -46,8 +45,11 @@ class Element:
         # element number
         self.number = 0
         # vertices
-        self.x = []
-        self.y = []
+#        self.x = []
+#        self.y = []
+        self.x = np.zeros(4)
+        self.y = np.zeros(4)
+
         # position within quarter section
         self.pos = ''
 
@@ -76,15 +78,13 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
         el_list.append(el)
         number = number + 1
 
-
-
 ## A: Generate the mesh
 #----------------------------------------------------------------------
 ## A.1: Generate the mesh for a quarter section
 #----------------------------------------------------------------------
 ## A.1.1: Set vertex positions of elements
 #----------------------------------------------------------------------
-nek_utils.set_vertices(el_list,nR,nSq,dx,dy)
+nek_utils.set_vertices(el_list,nR,nSq,dr)
 
 ## A.1.2: Set boundary conditions for faces 
 #----------------------------------------------------------------------
