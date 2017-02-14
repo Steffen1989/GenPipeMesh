@@ -2,10 +2,23 @@
 import sys
 import pdb
 import numpy as np
+import math as m
+
+
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# The vertices are set in a special way. For now the inner section, 
+# called square section, is just a regular square. The outer part, 
+# called onion region, is built up by ellipses and straight lines.
+# The semi-major axis a is decreasing each layer outwards so that a=1
+# in the outermost layer which gives a circle. The semi-minor axis is 
+# kept at b=1. The radius (constant) c is changed according to the 
+# radius at the y axis (x=0) 
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 def set_vertices(elements,nR,nSq,dr):
     """ Set vertex location for each element. """
 
+    ntheta = nSq*2  # number of elements in one onion layer
     for el in elements:
         if (el.number <= nSq**2):   # we are in the square section
             i = (el.number-1)%nSq     # column number
@@ -15,62 +28,179 @@ def set_vertices(elements,nR,nSq,dr):
         else:                       # we are in the outer onion like region :-)
             i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
             k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
-            j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first
+            j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first, start from j=0
+            l = (nR - nSq) - j                              # onion like layer number, outer one is last l=1
             rad1 = (j+nSq)*dr    # "radius": constant in ellipse equation
             rad2 = (j+1+nSq)*dr
+            exp = 1/(ntheta/2)  # exponent for decreasing semiaxis of ellipse
+#        a = semiaxis(nR, nSq, dr, rad1, 1, l)
+            slope1 = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
+            # of the element (upper part) or bottom side (lower part)
+            slope2 = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
+            # of the element (upper part) or top side (lower part)
             if (i < (nSq-1)):  # upper part, not border /
-               el.x = np.array([i*dr, (i+1)*dr, (i+1)*dr, i*dr])
+#               el.x = np.array([i*dr, (i+1)*dr, (i+1)*dr, i*dr])
+               x0 = intersection ((l+1)**exp,1,rad1**2,slope2,0)
+               x1 = intersection((l+1)**exp,1,rad1**2,slope1,0)
+               x2 = intersection(l**exp,1,rad2**2,slope1,0)
+               x3 = intersection(l**exp,1,rad2**2,slope2,0)
+               el.x = np.array([x0, x1, x2, x3])
                if ( j==0 ):  # first layer
-                    el.y[0:2] = [(j+nSq)*dr, (j+nSq)*dr]    # lower edge is not deformed (yet)
-                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
+                   el.x[0] = i*dr   # reset values in contact with the square region
+                   el.x[1] = (i+1)* dr
+                    
+                   el.y[0:2] = [(j+nSq)*dr, (j+nSq)*dr]    # lower edge is not deformed (yet)
+                   el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
+                   # set constant of ellipse to radius**2 and "a" to a value that decreases for the outer layers
+                   # and reaches 1 at the outermost layer. This is try and error :-)
                else:
     #                el.y = [(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr]
     #                el.y = np.array([(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr])
-                    el.y[0:2] = ellipse(1,1,1,el.x[0:2])*rad1
-                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
+                    el.y[0:2] = ellipse((l+1)**exp,1,rad1**2,el.x[0:2])
+                    el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
             elif (i > nSq):     # lower part, not border /
-               el.y = np.array([k*dr, k*dr, (k+1)*dr, (k+1)*dr])
+#               el.y = np.array([k*dr, k*dr, (k+1)*dr, (k+1)*dr])
+               x0 = intersection(1,(l+1)**exp,rad1**2,slope1,0)
+               x1 = intersection(1,l**exp,rad2**2,slope1,0)
+               x2 = intersection(1,l**exp,rad2**2,slope2,0)
+               x3 = intersection(1,(l+1)**exp,rad1**2,slope2,0)
+               y0 = line(slope1,x0,0)
+               y1 = line(slope1,x1,0)
+               y2 = line(slope2,x2,0)
+               y3 = line(slope2,x3,0)
+               el.y = np.array([y0, y1, y2, y3])
+
                if (j == 0):    # first layer
     #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
+                    el.y[0] = k*dr
+                    el.y[3] = (k+1)*dr
                     el.x[0] = (j+nSq)*dr
                     el.x[3] = (j+nSq)*dr
-                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
-                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
+                    el.x[1] = x1
+                    el.x[2] = x2
+
+
+#                    el.x[0] = (j+nSq)*dr
+#                    el.x[3] = (j+nSq)*dr
+#                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
+#                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
                else:
     #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
-                    el.x[0] = ellipse(1,1,1,el.y[0])*rad1
-                    el.x[3] = ellipse(1,1,1,el.y[3])*rad1
-                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
-                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
+                    el.x[0] = x0
+                    el.x[3] = x3
+                    el.x[1] = x1
+                    el.x[2] = x2
+
+
+
+#                    el.x[0] = ellipse(1,1,1,el.y[0])*rad1
+#                    el.x[3] = ellipse(1,1,1,el.y[3])*rad1
+#                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
+#                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
             elif (i == (nSq-1)):    # upper part at border /
-                el.x = np.array([i*dr, (i+1+j)*dr, (i+1+(j+1))*dr, i*dr])
+#                el.x = np.array([i*dr, (i+1+j)*dr, (i+1+(j+1))*dr, i*dr])
+                x0 = intersection ((l+1)**exp,1,rad1**2,slope2,0)
+                x1 = intersection((l+1)**exp,1,rad1**2,slope1,0)
+                x2 = intersection(l**exp,1,rad2**2,slope1,0)
+                x3 = intersection(l**exp,1,rad2**2,slope2,0)
+                el.x = np.array([x0, x1, x2, x3])
                 if ( j==0 ):  # first layer
+                    el.x[0] = i*dr
+                    el.x[1] = (i+1+j)*dr
                     el.y[0:2] = [(j+nSq)*dr, (j+nSq)*dr]    # lower edge is not deformed (yet)
-                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
+                    el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
                 else:
     #                el.y = np.array([(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr])
-                    el.y[0:2] = ellipse(1,1,1,el.x[0:2])*rad1
-                    el.y[2:4] = ellipse(1,1,1,el.x[2:4])*rad2
+                    el.y[0:2] = ellipse((l+1)**exp,1,rad1**2,el.x[0:2])
+                    el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
             elif (i == nSq):    # lower part at border /
-#                el.x = np.array([(j+nSq)*dr, (j+nSq+1)*dr, (j+nSq+1)*dr, (j+nSq)*dr])
-                el.y = np.array([k*dr, k*dr, (k+1+(j+1))*dr, (k+1+j)*dr])
+##                el.x = np.array([(j+nSq)*dr, (j+nSq+1)*dr, (j+nSq+1)*dr, (j+nSq)*dr])
+#                el.y = np.array([k*dr, k*dr, (k+1+(j+1))*dr, (k+1+j)*dr])
+                x0 = intersection(1,(l+1)**exp,rad1**2,slope1,0)
+                x1 = intersection(1,l**exp,rad2**2,slope1,0)
+                x2 = intersection(1,l**exp,rad2**2,slope2,0)
+                x3 = intersection(1,(l+1)**exp,rad1**2,slope2,0)
+                y0 = line(slope1,x0,0)
+                y1 = line(slope1,x1,0)
+                y2 = line(slope2,x2,0)
+                y3 = line(slope2,x3,0)
+                el.y = np.array([y0, y1, y2, y3])
+
                 if (j == 0):    # first layer
+                    el.y[0] = k*dr
+                    el.y[3] = (k+1)*dr
                     el.x[0] = (j+nSq)*dr
                     el.x[3] = (j+nSq)*dr
-                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
-                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
+                    el.x[1] = ellipse(l**exp,1,rad2**2,el.y[1])
+                    el.x[2] = ellipse(l**exp,1,rad2**2,el.y[2])
                 else:
     #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
-                    el.x[0] = ellipse(1,1,1,el.y[0])*rad1
-                    el.x[3] = ellipse(1,1,1,el.y[3])*rad1
-                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
-                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
+                    el.x[0] = x0
+                    el.x[3] = x3
+                    el.x[1] = x1
+                    el.x[2] = x2
+
+def semiaxis(nR, nSq, dr, rad, b, l):
+    """ Function for semiaxis dependence
+    
+    nR  : number of elements in radial direction
+    nSq : number of square elements along one side
+    dr  : element length
+    rad : "radius" of the ellipse (constant on the rhs)
+    b   : semi-minor axis of the ellipse (usually taken as 1)
+    l   : onion layer number (starting from 0, increasing outwards)
+    """
+
+    a_min = 1
+    l_max = (nR-nSq)-1
+    # a_max is found at the lowest onion region where the elements at the border
+    # need to be outside of the square region
+    x_max = nSq*dr
+    y_max = nSq*dr
+    a_max = x_max*b/( (rad**2*b**2-y_max**2)**(0.5) )
+
+    # distribution of the semiaxis depends linear on onion layer
+    ret = a_max + (a_max-a_min)/l_max * l
+    return ret
 
 
 def ellipse(a,b,c,x):
-    """ Ellipse with x**2/a**2 + y**2/b**2 = c """
+    """ Ellipse with x**2/a**2 + y**2/b**2 = c 
+    
+    a : semi-major axis
+    b : semi-minor axis
+    c : "radius" or constant on the rhs
+    x : dependent variable
+    """
+
     ret = b*(c-x**2/a**2)**(0.5)
     return ret
+
+def line(m,x,d):
+    """ Straight line with y = m*x + d 
+    
+    m : slope
+    d : y-intercept
+    """
+
+    ret = m*x+d
+    return ret
+
+def intersection(a,b,c,m,d):
+    """ Intersection between ellipse and straight line. 
+    
+    a : semi-major axis
+    b : semi-minor axis
+    c : "radius" or constant on the rhs 
+    m : slope of straight line
+    d : y-intercept of straight line
+    """
+
+    # x value from b(c-x**2/a**2)**(0.5) = m*x + d
+    A = 2*m*d/(m**2+b**2/a**2)
+    B = (d**2-b**2*c)/(m**2+b**2/a**2)
+    x = - A/2 + ( A**2/4 - B )**(0.5)
+    return x
 
 def set_bc(elements,nR,nSq):
     """ Set boundary conditions for each face. """
