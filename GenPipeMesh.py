@@ -21,19 +21,13 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-nR = 12
+nR = 8
 #nSq = 19
-nSq = 8         # nel in square region along one side of the square
+nSq = 4         # nel in square region along one side of the square
 
 # Define global variables here:
 #----------------------------------------------------------------------
 nPhi = nSq*8    # nel in circumferential direction
-#nSq = nPhi/8    # nel in square region along one side of the square
-#if ( (nPhi % 8) != 0 ):
-#    print("Number of circumferential elements needs to be a multiple of 8")
-#    sys.exit(1)
-#else:
-#    nSq = int(nSq)
 dr = R/nR       # length of one element
 n_tot = nR * nPhi   # total number of elements
 spatial_dim = 2     # spatial dimension
@@ -42,11 +36,11 @@ class Element:
     """ A class for 2d elements """
 
     def __init__(self):
+
         # element number
         self.number = 0
+
         # vertices
-#        self.x = []
-#        self.y = []
         self.x = np.zeros(4)
         self.y = np.zeros(4)
 
@@ -70,7 +64,7 @@ for i in range(nSq):
         el.number = number
         el_list.append(el)
         number = number + 1
-# Populate list of elements: second, the curved region outside
+# Populate list of elements: second, the curved region outside (onion region)
 for i in range(nR-nSq):     # loop through each onion like layer outwards
     for j in range(nSq*2): # loop in clockwise direction through each layer
         el = Element()
@@ -117,7 +111,6 @@ nek_utils.write_mesh(el_list)
 #----------------------------------------------------------------------
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
-#pdb.set_trace()
 nek_utils.write_bc(el_list, nR, nSq)
 
 

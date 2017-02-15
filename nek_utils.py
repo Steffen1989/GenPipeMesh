@@ -20,147 +20,82 @@ def set_vertices(elements,nR,nSq,dr):
 
     ntheta = nSq*2  # number of elements in one onion layer
     for el in elements:
-        if (el.number <= nSq**2):   # we are in the square section
+        if (el.number <= nSq**2):   
+            # we are in the square section
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
             el.x = np.array([i*dr, (i+1)*dr, (i+1)*dr, i*dr])  # set vertex coordinates
             el.y = np.array([j*dr, j*dr, (j+1)*dr, (j+1)*dr])  # set vertex coordinates
-        else:                       # we are in the outer onion like region :-)
+        else:                       
+            # we are in the outer onion like region :-)
             i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
             k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
             j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first, start from j=0
-            l = (nR - nSq) - j                              # onion like layer number, outer one is last l=1
+            l = (nR - nSq) - (j+1)                              # onion like layer number, outer one is last l=0
             rad1 = (j+nSq)*dr    # "radius": constant in ellipse equation
             rad2 = (j+1+nSq)*dr
+            r_min = (nSq+1)*dr  # minimum "radius" for ellipses
             exp = 1/(ntheta/2)  # exponent for decreasing semiaxis of ellipse
-#        a = semiaxis(nR, nSq, dr, rad1, 1, l)
             slope1 = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
             # of the element (upper part) or bottom side (lower part)
             slope2 = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
             # of the element (upper part) or top side (lower part)
-            if (i < (nSq-1)):  # upper part, not border /
-#               el.x = np.array([i*dr, (i+1)*dr, (i+1)*dr, i*dr])
-               x0 = intersection ((l+1)**exp,1,rad1**2,slope2,0)
-               x1 = intersection((l+1)**exp,1,rad1**2,slope1,0)
-               x2 = intersection(l**exp,1,rad2**2,slope1,0)
-               x3 = intersection(l**exp,1,rad2**2,slope2,0)
-               el.x = np.array([x0, x1, x2, x3])
-               if ( j==0 ):  # first layer
-                   el.x[0] = i*dr   # reset values in contact with the square region
-                   el.x[1] = (i+1)* dr
-                    
-                   el.y[0:2] = [(j+nSq)*dr, (j+nSq)*dr]    # lower edge is not deformed (yet)
-                   el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
-                   # set constant of ellipse to radius**2 and "a" to a value that decreases for the outer layers
-                   # and reaches 1 at the outermost layer. This is try and error :-)
-               else:
-    #                el.y = [(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr]
-    #                el.y = np.array([(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr])
-                    el.y[0:2] = ellipse((l+1)**exp,1,rad1**2,el.x[0:2])
-                    el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
-            elif (i > nSq):     # lower part, not border /
-#               el.y = np.array([k*dr, k*dr, (k+1)*dr, (k+1)*dr])
-               x0 = intersection(1,(l+1)**exp,rad1**2,slope1,0)
-               x1 = intersection(1,l**exp,rad2**2,slope1,0)
-               x2 = intersection(1,l**exp,rad2**2,slope2,0)
-               x3 = intersection(1,(l+1)**exp,rad1**2,slope2,0)
-               y0 = line(slope1,x0,0)
-               y1 = line(slope1,x1,0)
-               y2 = line(slope2,x2,0)
-               y3 = line(slope2,x3,0)
-               el.y = np.array([y0, y1, y2, y3])
-
-               if (j == 0):    # first layer
-    #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
-                    el.y[0] = k*dr
-                    el.y[3] = (k+1)*dr
-                    el.x[0] = (j+nSq)*dr
-                    el.x[3] = (j+nSq)*dr
-                    el.x[1] = x1
-                    el.x[2] = x2
-
-
-#                    el.x[0] = (j+nSq)*dr
-#                    el.x[3] = (j+nSq)*dr
-#                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
-#                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
-               else:
-    #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
-                    el.x[0] = x0
-                    el.x[3] = x3
-                    el.x[1] = x1
-                    el.x[2] = x2
-
-
-
-#                    el.x[0] = ellipse(1,1,1,el.y[0])*rad1
-#                    el.x[3] = ellipse(1,1,1,el.y[3])*rad1
-#                    el.x[1] = ellipse(1,1,1,el.y[1])*rad2
-#                    el.x[2] = ellipse(1,1,1,el.y[2])*rad2
-            elif (i == (nSq-1)):    # upper part at border /
-#                el.x = np.array([i*dr, (i+1+j)*dr, (i+1+(j+1))*dr, i*dr])
-                x0 = intersection ((l+1)**exp,1,rad1**2,slope2,0)
-                x1 = intersection((l+1)**exp,1,rad1**2,slope1,0)
-                x2 = intersection(l**exp,1,rad2**2,slope1,0)
-                x3 = intersection(l**exp,1,rad2**2,slope2,0)
-                el.x = np.array([x0, x1, x2, x3])
+            semi_major = lambda j: semiaxis(nR, nSq, dr, r_min, 1, j)    # semi-major axis at layer j
+            if (i <= (nSq-1)):  # upper part, including border /
+                x0 = intersection(semi_major(j),1,rad1**2,slope2,0)
+                x1 = intersection(semi_major(j),1,rad1**2,slope1,0)
+                x2 = intersection(semi_major(j+1),1,rad2**2,slope1,0)
+                x3 = intersection(semi_major(j+1),1,rad2**2,slope2,0)
+                el.x = [x0, x1, x2, x3]
                 if ( j==0 ):  # first layer
-                    el.x[0] = i*dr
-                    el.x[1] = (i+1+j)*dr
-                    el.y[0:2] = [(j+nSq)*dr, (j+nSq)*dr]    # lower edge is not deformed (yet)
-                    el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
+                    el.x[0] = i*dr   # reset values in contact with the square region
+                    el.x[1] = (i+1)* dr
+                    el.y[0:2] = [nSq*dr, nSq*dr]    # lower edge is not deformed (yet)
+                    el.y[2:4] = ellipse(semi_major(j+1),1,rad2**2,el.x[2:4])
                 else:
-    #                el.y = np.array([(j+nSq)*dr, (j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr])
-                    el.y[0:2] = ellipse((l+1)**exp,1,rad1**2,el.x[0:2])
-                    el.y[2:4] = ellipse(l**exp,1,rad2**2,el.x[2:4])
-            elif (i == nSq):    # lower part at border /
-##                el.x = np.array([(j+nSq)*dr, (j+nSq+1)*dr, (j+nSq+1)*dr, (j+nSq)*dr])
-#                el.y = np.array([k*dr, k*dr, (k+1+(j+1))*dr, (k+1+j)*dr])
-                x0 = intersection(1,(l+1)**exp,rad1**2,slope1,0)
-                x1 = intersection(1,l**exp,rad2**2,slope1,0)
-                x2 = intersection(1,l**exp,rad2**2,slope2,0)
-                x3 = intersection(1,(l+1)**exp,rad1**2,slope2,0)
+                    el.y[0:2] = ellipse(semi_major(j),1,rad1**2,el.x[0:2])
+                    el.y[2:4] = ellipse(semi_major(j+1),1,rad2**2,el.x[2:4])
+            elif (i >= nSq):     # lower part, including border /
+                x0 = intersection(1,semi_major(j),rad1**2,slope1,0)
+                x1 = intersection(1,semi_major(j+1),rad2**2,slope1,0)
+                x2 = intersection(1,semi_major(j+1),rad2**2,slope2,0)
+                x3 = intersection(1,semi_major(j),rad1**2,slope2,0)
                 y0 = line(slope1,x0,0)
                 y1 = line(slope1,x1,0)
                 y2 = line(slope2,x2,0)
                 y3 = line(slope2,x3,0)
                 el.y = np.array([y0, y1, y2, y3])
-
                 if (j == 0):    # first layer
-                    el.y[0] = k*dr
+                    el.y[0] = k*dr  # reset values in contact with the square region
                     el.y[3] = (k+1)*dr
-                    el.x[0] = (j+nSq)*dr
-                    el.x[3] = (j+nSq)*dr
-                    el.x[1] = ellipse(l**exp,1,rad2**2,el.y[1])
-                    el.x[2] = ellipse(l**exp,1,rad2**2,el.y[2])
+                    el.x[0] = nSq*dr
+                    el.x[3] = nSq*dr
+                    el.x[1:3] = [x1, x2]
                 else:
-    #                el.x = np.array([(j+nSq)*dr, (j+1+nSq)*dr, (j+1+nSq)*dr, (j+nSq)*dr])
-                    el.x[0] = x0
-                    el.x[3] = x3
-                    el.x[1] = x1
-                    el.x[2] = x2
+                    el.x = [x0, x1, x2, x3]
 
-def semiaxis(nR, nSq, dr, rad, b, l):
+
+def semiaxis(nR, nSq, dr, r_min, b, j):
     """ Function for semiaxis dependence
     
-    nR  : number of elements in radial direction
-    nSq : number of square elements along one side
-    dr  : element length
-    rad : "radius" of the ellipse (constant on the rhs)
-    b   : semi-minor axis of the ellipse (usually taken as 1)
-    l   : onion layer number (starting from 0, increasing outwards)
+    nR    : number of elements in radial direction
+    nSq   : number of square elements along one side
+    dr    : element length
+    r_min : minimum "radius" of the ellipse (constant on the rhs)
+    b     : semi-minor axis of the ellipse (usually taken as 1)
+    j     : onion layer number (starting from 0, increasing outwards)
     """
 
     a_min = 1
-    l_max = (nR-nSq)-1
+    layers = (nR-nSq)
     # a_max is found at the lowest onion region where the elements at the border
     # need to be outside of the square region
-    x_max = nSq*dr
-    y_max = nSq*dr
-    a_max = x_max*b/( (rad**2*b**2-y_max**2)**(0.5) )
+    x_max = (nSq)*dr
+    y_max = x_max
+    a_max = x_max*b/( (r_min**2*b**2-y_max**2)**(0.5) )
 
     # distribution of the semiaxis depends linear on onion layer
-    ret = a_max + (a_max-a_min)/l_max * l
+    ret = a_max - (a_max-a_min)/(layers-1) * (j-1)  # a_max for j=1
     return ret
 
 
