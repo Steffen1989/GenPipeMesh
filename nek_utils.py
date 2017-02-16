@@ -26,19 +26,30 @@ def set_vertices(elements,nR,nSq,dr):
     kept at b=1. The radius (constant) c is changed according to the 
     radius at the y axis (x=0) 
     """
-
+    
+    # Variable definitions
     ntheta = nSq*2  # number of elements in one onion layer
+    rad_on = np.zeros(2)       # "radius": constant in ellipse equation
+    rad_row = np.zeros(2)       # "radius": constant in ellipse equation
+    rad_col = np.zeros(2)       # "radius": constant in ellipse equation
+    semi_major_on = np.zeros(2)    # semi-major axis
+    semi_major_row = np.zeros(2)    
+    semi_major_col = np.zeros(2)
+    slope_on = np.zeros(2)     # slope of straight lines
+    slope_row = np.zeros(2)
+    slope_col = np.zeros(2)
+    # intersection between straight lines and ellipses
+    # at the last curve of square region
+    x_inters_row = np.zeros(2)     
+    x_inters_col = np.zeros(2)      
+    y_inters_col = np.zeros(2)
+    y_inters_row = np.zeros(2)
+ 
     for el in elements:
-        rad_on = np.zeros(2)       # "radius": constant in ellipse equation
-        rad_row = np.zeros(2)       # "radius": constant in ellipse equation
-        rad_col = np.zeros(2)       # "radius": constant in ellipse equation
-        semi_major_on = np.zeros(2)    # semi-major axis
-        semi_major_row = np.zeros(2)    
-        semi_major_col = np.zeros(2)
-        slope = np.zeros(2)     # slope of straight lines
-
         if (el.number <= nSq**2):   
-            # we are in the square section
+            # This is the inner, "square" section
+            # OPEN square
+            #--------------------------------------------------
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
 
@@ -46,31 +57,53 @@ def set_vertices(elements,nR,nSq,dr):
             #----------------------------------------------------------------------
             # determine the minimum semi-major axis at the edge to the onion region
             b_sq = 1
-            drop_sq_max = 0.70         # max drop in percent compared to all squares
-            drop_sq_min = 0.95         # min drop
+            drop_sq_max = 0.80         # max drop in percent compared to all squares
             n_ellip_sq = nSq  # number of ellipses
             x_max_sq = nSq*dr
             r_max_sq = x_max_sq
             y_max_sq = x_max_sq*drop_sq_max
             a_min_sq = x_max_sq*b_sq/( (r_max_sq**2*b_sq**2-y_max_sq**2)**0.5 )
 
-            # determine the maximum semi-major axis at the first rows
-            r_min_sq = dr 
-            y_min_sq = dr*drop_sq_min   # first row drops by a certain percentage
-            a_max_sq = x_max_sq*b_sq/( (r_min_sq**2*b_sq**2-y_min_sq**2)**(0.5) )
-            semi_major_row[0] = geom_prog(n_ellip_sq, a_min_sq, a_max_sq, j)
-            semi_major_row[1] = geom_prog(n_ellip_sq, a_min_sq, a_max_sq, j+1)
-            semi_major_col[0] = geom_prog(n_ellip_sq, a_min_sq, a_max_sq, i)
-            semi_major_col[1] = geom_prog(n_ellip_sq, a_min_sq, a_max_sq, i+1)
-#            semi_major_row[0] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, j)
-#            semi_major_row[1] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, j+1)
-#            semi_major_col[0] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, i)
-#            semi_major_col[1] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, i+1)
+            # Idea: define ellipses in the inner region such that they coincide with the 
+            # element in the onion region.
+            # OPEN def semi-major axis
+            #--------------------------------------------------
+            slope_row[0] = m.tan(m.pi/2*(j/ntheta))  # slope of the straight line on the bottom side
+            slope_row[1] = m.tan(m.pi/2*((j+1)/ntheta)) # slope of the straight line on the top side
+            slope_col[0] = m.tan(m.pi/2*((ntheta-i)/ntheta))  # slope of the straight line on the left side
+            slope_col[1] = m.tan(m.pi/2*((ntheta-i-1)/ntheta)) # slope of the straight line on the right side
 
             rad_row[0] = j*dr    # small "radius"  
             rad_row[1] = (j+1)*dr   # large "radius"
             rad_col[0] = i*dr    # small "radius"  
             rad_col[1] = (i+1)*dr   # large "radius"
+
+            x_inters_row[0] = intersec_ellip_line(b_sq,a_min_sq,r_max_sq**2,slope_row[0],0)
+            x_inters_row[1] = intersec_ellip_line(b_sq,a_min_sq,r_max_sq**2,slope_row[1],0)
+            y_inters_row[0] = line(slope_row[0],x_inters_row[0],0)
+            y_inters_row[1] = line(slope_row[1],x_inters_row[1],0)
+
+            x_inters_col[0] = intersec_ellip_line(a_min_sq,b_sq,r_max_sq**2,slope_col[0],0)
+            x_inters_col[1] = intersec_ellip_line(a_min_sq,b_sq,r_max_sq**2,slope_col[1],0)
+            y_inters_col[0] = line(slope_col[0],x_inters_col[0],0)
+            y_inters_col[1] = line(slope_col[1],x_inters_col[1],0)
+
+            if (j==0):
+                semi_major_row[0] = 0   # this is reset later
+                semi_major_row[1] = x_inters_row[1]*b_sq/( (rad_row[1]**2*b_sq**2 - y_inters_row[1]**2)**0.5 )
+            else: 
+                semi_major_row[0] = x_inters_row[0]*b_sq/( (rad_row[0]**2*b_sq**2 - y_inters_row[0]**2)**0.5 )
+                semi_major_row[1] = x_inters_row[1]*b_sq/( (rad_row[1]**2*b_sq**2 - y_inters_row[1]**2)**0.5 )
+
+            if (i==0):                # note that x and y need to be switched here
+                semi_major_col[0] = 0   # this is reset later 
+                semi_major_col[1] = y_inters_col[1]*b_sq/( (rad_col[1]**2*b_sq**2 - x_inters_col[1]**2)**0.5 )
+            else:
+                semi_major_col[0] = y_inters_col[0]*b_sq/( (rad_col[0]**2*b_sq**2 - x_inters_col[0]**2)**0.5 )
+                semi_major_col[1] = y_inters_col[1]*b_sq/( (rad_col[1]**2*b_sq**2 - x_inters_col[1]**2)**0.5 )
+
+            # CLOSE def semi-major axis
+            #--------------------------------------------------
 
             if (j==0): # first row
                 if (i==0):  # first col
@@ -115,8 +148,12 @@ def set_vertices(elements,nR,nSq,dr):
                 el.y = np.array([y0, y1, y2, y3])
             else:
                 sys.exit(1)
+            #---------------------------------------------------
+            # END square
         else:                       
-            # we are in the outer onion like region :-)
+            # This is the outer, "onion" section
+            # OPEN onion
+            #--------------------------------------------------
             i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
             k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
             j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first, start from j=0
@@ -128,60 +165,50 @@ def set_vertices(elements,nR,nSq,dr):
             b_on = 1
 
             # determine the maxim semi-major axis at the edge to the square region
-            r_min_on = (nSq+1)*dr
+            r_min_on = (nSq)*dr
 
-            delta_j = (nR-nSq)-1
             # a_max is found at the lowest onion region where the elements at the border
             # need to be outside of the square region
             el_square = elements[nSq**2-1]  # last element in square region
-            gap = el_square.x[2] - el_square.x[3]   # keep a distance of "gap" to the last element 
             # in square region
-            x_min_on = el_square.x[2]+gap/(2**0.5)
+            x_min_on = el_square.x[2]
             y_min_on = x_min_on
             a_max_on = x_min_on*b_on/( (r_min_on**2*b_on**2-y_min_on**2)**(0.5) )
+            
+            a_max_on = a_min_sq
             semi_major_on[0] = geom_prog(nR-nSq, a_min_on, a_max_on, j)
             semi_major_on[1] = geom_prog(nR-nSq, a_min_on, a_max_on, j+1)
+            semi_major_on[0] = lin_dist(nR-nSq, a_min_on, a_max_on, j)
+            semi_major_on[1] = lin_dist(nR-nSq, a_min_on, a_max_on, j+1)
+            semi_major_on[0] = quad_dist(nR-nSq, a_min_on, a_max_on, j)
+            semi_major_on[1] = quad_dist(nR-nSq, a_min_on, a_max_on, j+1)
+
+
             rad_on[0] = (j+nSq)*dr    
             rad_on[1] = (j+1+nSq)*dr
-            slope[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
+            slope_on[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
             # of the element (upper part) or bottom side (lower part)
-            slope[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
+            slope_on[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
             # of the element (upper part) or top side (lower part)
             if (i <= (nSq-1)):  # upper part, including border /
-                x0 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope[1],0)
-                x1 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope[0],0)
-                x2 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope[0],0)
-                x3 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope[1],0)
+                x0 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope_on[1],0)
+                x1 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope_on[0],0)
+                x2 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope_on[0],0)
+                x3 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope_on[1],0)
                 el.x = np.array([x0, x1, x2, x3])
-                if ( j==0 ):  # first layer
-                    # copy values from "square" region
-                    el.x[0] = elements[el.number-nSq-1].x[3]
-                    el.x[1] = elements[el.number-nSq-1].x[2]
-                    el.y[0] = elements[el.number-nSq-1].y[3]
-                    el.y[1] = elements[el.number-nSq-1].y[2]
-                    el.y[2:4] = ellipse(semi_major_on[1],1,rad_on[1]**2,el.x[2:4])
-                else:
-                    el.y[0:2] = ellipse(semi_major_on[0],1,rad_on[0]**2,el.x[0:2])
-                    el.y[2:4] = ellipse(semi_major_on[1],1,rad_on[1]**2,el.x[2:4])
+                el.y[0:2] = ellipse(semi_major_on[0],1,rad_on[0]**2,el.x[0:2])
+                el.y[2:4] = ellipse(semi_major_on[1],1,rad_on[1]**2,el.x[2:4])
             elif (i >= nSq):     # lower part, including border /
-                x0 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope[0],0)
-                x1 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope[0],0)
-                x2 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope[1],0)
-                x3 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope[1],0)
-                y0 = line(slope[0],x0,0)
-                y1 = line(slope[0],x1,0)
-                y2 = line(slope[1],x2,0)
-                y3 = line(slope[1],x3,0)
+                x0 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope_on[0],0)
+                x1 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope_on[0],0)
+                x2 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope_on[1],0)
+                x3 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope_on[1],0)
+                y0 = line(slope_on[0],x0,0)
+                y1 = line(slope_on[0],x1,0)
+                y2 = line(slope_on[1],x2,0)
+                y3 = line(slope_on[1],x3,0)
                 el.y = np.array([y0, y1, y2, y3])
-                if (j == 0):    # first layer
-                    # copy values from "square" region
-                    el.x[0] = elements[nSq*(k+1)-1].x[1]
-                    el.x[3] = elements[nSq*(k+1)-1].x[2]
-                    el.y[0] = elements[nSq*(k+1)-1].y[1]
-                    el.y[3] = elements[nSq*(k+1)-1].y[2]
-                    el.x[1:3] = np.array([x1, x2])
-                else:
-                    el.x = np.array([x0, x1, x2, x3])
+                el.x = np.array([x0, x1, x2, x3])
 
 
 def lin_dist(N, a_min, a_max, j):
@@ -193,14 +220,28 @@ def lin_dist(N, a_min, a_max, j):
     j     : step
     """
 
-    ret = a_max - (a_max-a_min)/(N-1) * (j-1)
+    ret = a_max - (a_max-a_min)/(N) * (j)
     return ret
+
+
+def quad_dist(N, a_min, a_max, j):
+    """ Quadratic distribution 
+
+    N     : number of steps
+    a_min : starting value at j=1
+    a_max : maximum value at j=N
+    j     : step
+    """
+
+    ret = (a_max-a_min)/(N**2) * (j-N)**2 + a_min
+    return ret
+
 
 
 def geom_prog(N, a_min, a_max, j):
     """ Geometric progression a(j) = a_min * r**j 
 
-    with a(1) = a_max 
+    with a(0) = a_max 
     and a(N) = a_min*r**N = a_max
 
     N     : number of steps
@@ -208,8 +249,8 @@ def geom_prog(N, a_min, a_max, j):
     a_max : maximum value
     j     : step
     """
-    r = m.exp(m.log(a_min/a_max)/(N-1))
-    ret  = a_max * r**(j-1)
+    r = m.exp(m.log(a_min/a_max)/(N))
+    ret  = a_max * r**(j)
 
     return ret
 
