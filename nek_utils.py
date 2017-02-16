@@ -20,31 +20,51 @@ def set_vertices(elements,nR,nSq,dr):
 
     ntheta = nSq*2  # number of elements in one onion layer
     for el in elements:
+        rad = np.zeros(2)       # "radius": constant in ellipse equation
+        semi_major = np.zeros(2)    # semi-major axis
+        slope = np.zeros(2)     # slope of straight lines
+
         if (el.number <= nSq**2):   
             # we are in the square section
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
+            rad[0] = j*dr    
+            rad[1] = (j+1)*dr
+            drop = 0.85  
+            semi_major[0] = semiaxis_sq(elements, nR, nSq, dr, drop, 1, j)  # semi-major axis at row j
+            semi_major[1] = semiaxis_sq(elements, nR, nSq, dr, drop, 1, j+1)
+
             el.x = np.array([i*dr, (i+1)*dr, (i+1)*dr, i*dr])  # set vertex coordinates
             el.y = np.array([j*dr, j*dr, (j+1)*dr, (j+1)*dr])  # set vertex coordinates
+
+            if (j==0): # first row
+                el.y[0:2] = np.array([j*dr, j*dr])
+                el.y[2:4] = ellipse(semi_major[1],1,rad[1]**2,el.x[2:4])
+            else:   # inside
+                el.y[0:2] = ellipse(semi_major[0],1,rad[0]**2,el.x[0:2])
+                el.y[2:4] = ellipse(semi_major[1],1,rad[1]**2,el.x[2:4])
+#
+# ToDo: intersection between ellipses and different case behaviour
+# ToDo: more general semiaxis function that can be used for square and onion region
+
+
         else:                       
             # we are in the outer onion like region :-)
             i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
             k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
             j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first, start from j=0
             l = (nR - nSq) - (j+1)                              # onion like layer number, outer one is last l=0
-            rad = np.zeros(2)       # "radius": constant in ellipse equation
             rad[0] = (j+nSq)*dr    
             rad[1] = (j+1+nSq)*dr
-            r_min = (nSq+1)*dr  # minimum "radius" for ellipses
-            slope = np.zeros(2)
+#            r_min = (nSq+1)*dr  # minimum "radius" for ellipses
             slope[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
             # of the element (upper part) or bottom side (lower part)
             slope[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
             # of the element (upper part) or top side (lower part)
-            semi_major = np.zeros(2)
-            semi_major[0] = semiaxis(nR, nSq, dr, r_min, 1, j)  # semi-major axis at layer j
-            semi_major[1] = semiaxis(nR, nSq, dr, r_min, 1, j+1)
-#            semi_major = lambda j: semiaxis(nR, nSq, dr, r_min, 1, j)    # semi-major axis at layer j
+            drop = 0.8
+            semi_major[0] = semiaxis_on(elements, nR, nSq, dr, drop, 1, j)  # semi-major axis at layer j
+            semi_major[1] = semiaxis_on(elements, nR, nSq, dr, drop, 1, j+1)
+#            semi_major = lambda j: semiaxis_on(nR, nSq, dr, r_min, 1, j)    # semi-major axis at layer j
             if (i <= (nSq-1)):  # upper part, including border /
                 x0 = intersection(semi_major[0],1,rad[0]**2,slope[1],0)
                 x1 = intersection(semi_major[0],1,rad[0]**2,slope[0],0)
@@ -55,6 +75,8 @@ def set_vertices(elements,nR,nSq,dr):
                     el.x[0] = i*dr   # reset values in contact with the square region
                     el.x[1] = (i+1)* dr
                     el.y[0:2] = [nSq*dr, nSq*dr]    # lower edge is not deformed (yet)
+#                    el.y[0] = elements[nSq**2-nSq+i].y[3]
+#                    el.y[1] = elements[nSq**2-nSq+i].y[2]
                     el.y[2:4] = ellipse(semi_major[1],1,rad[1]**2,el.x[2:4])
                 else:
                     el.y[0:2] = ellipse(semi_major[0],1,rad[0]**2,el.x[0:2])
@@ -78,23 +100,56 @@ def set_vertices(elements,nR,nSq,dr):
                 else:
                     el.x = np.array([x0, x1, x2, x3])
 
-
-def semiaxis(nR, nSq, dr, r_min, b, j):
-    """ Function for semiaxis dependence
+def semiaxis_sq(elements, nR, nSq, dr, drop, b, j):
+    """ Function for semiaxis dependence in the square region
     
     nR    : number of elements in radial direction
     nSq   : number of square elements along one side
     dr    : element length
-    r_min : minimum "radius" of the ellipse (constant on the rhs)
+    drop  : drop by a certain percentage
+    b     : semi-minor axis of the ellipse (usually taken as 1)
+    j     : onion layer number (starting from 0, increasing outwards)
+    """
+
+    
+    # determine the minimum semi-major axis at the edge to the onion region
+    x_max = nSq*dr
+    r_max = x_max
+    y_max = x_max*drop   # drop by a certain percentage
+    a_min = x_max*b/( (r_max**2*b**2-y_max**2)**0.5 )
+    # beginning of onion region
+    delta_j = nSq-1
+
+    # determine the maximum semi-major axis at the first rows
+    r_min = dr 
+    y_min = dr*0.95   # first row drops by a certain percentage
+    a_max = x_max*b/( (r_min**2*b**2-y_min**2)**(0.5) )
+
+    # distribution of the semiaxis depends linear on onion layer number
+#    ret = a_max - (a_max-a_min)/delta_j * (j-1)  # a_max for j=1
+
+    # distribution of the semi-major axis depends quadratic on onion layer number
+    ret = (a_max-a_min)/( delta_j**2 ) * (j-(delta_j+1))**2 + a_min
+    return ret
+
+
+def semiaxis_on(elements, nR, nSq, dr, drop, b, j):
+    """ Function for semiaxis dependence in the onion region
+    
+    nR    : number of elements in radial direction
+    nSq   : number of square elements along one side
+    dr    : element length
     b     : semi-minor axis of the ellipse (usually taken as 1)
     j     : onion layer number (starting from 0, increasing outwards)
     """
 
     a_min = 1
+    r_min = (nSq+1)*dr
     delta_j = (nR-nSq)-1
     # a_max is found at the lowest onion region where the elements at the border
     # need to be outside of the square region
-    x_max = (nSq)*dr
+    el_square = elements[nSq**2-1]  # last element in square region
+    x_max = el_square.x[2]
     y_max = x_max
     a_max = x_max*b/( (r_min**2*b**2-y_max**2)**(0.5) )
 
@@ -102,8 +157,17 @@ def semiaxis(nR, nSq, dr, r_min, b, j):
     ret = a_max - (a_max-a_min)/delta_j * (j-1)  # a_max for j=1
 
     # distribution of the semi-major axis depends quadratic on onion layer number
-    ret = (a_max-1)/( delta_j**2 ) * (j-(delta_j+1))**2 + 1
+    ret = (a_max-a_min)/( delta_j**2 ) * (j-(delta_j+1))**2 + a_min
+    
+    # geometric progression: a(j) = a_0 * r**j
+    N = (nR-nSq)+1  # number of ellipses
+    r = m.exp(m.log(a_min/a_max)/N)
+    ret  = a_max * r**(j-1)
+
     return ret
+
+
+
 
 
 def ellipse(a,b,c,x):
