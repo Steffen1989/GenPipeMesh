@@ -29,10 +29,10 @@ def set_vertices(elements,nR,nSq,dr):
 
     ntheta = nSq*2  # number of elements in one onion layer
     for el in elements:
-        rad = np.zeros(2)       # "radius": constant in ellipse equation
+        rad_on = np.zeros(2)       # "radius": constant in ellipse equation
         rad_row = np.zeros(2)       # "radius": constant in ellipse equation
         rad_col = np.zeros(2)       # "radius": constant in ellipse equation
-        semi_major = np.zeros(2)    # semi-major axis
+        semi_major_on = np.zeros(2)    # semi-major axis
         semi_major_row = np.zeros(2)    
         semi_major_col = np.zeros(2)
         slope = np.zeros(2)     # slope of straight lines
@@ -41,17 +41,19 @@ def set_vertices(elements,nR,nSq,dr):
             # we are in the square section
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
+
             # Determine the semi-major axis for "square" section
             #----------------------------------------------------------------------
             # determine the minimum semi-major axis at the edge to the onion region
             b_sq = 1
-            drop_sq_max = 0.80         # max drop in percent compared to all squares
-            drop_sq_min = 0.99         # min drop
+            drop_sq_max = 0.70         # max drop in percent compared to all squares
+            drop_sq_min = 0.95         # min drop
             n_ellip_sq = nSq  # number of ellipses
             x_max_sq = nSq*dr
             r_max_sq = x_max_sq
             y_max_sq = x_max_sq*drop_sq_max
             a_min_sq = x_max_sq*b_sq/( (r_max_sq**2*b_sq**2-y_max_sq**2)**0.5 )
+
             # determine the maximum semi-major axis at the first rows
             r_min_sq = dr 
             y_min_sq = dr*drop_sq_min   # first row drops by a certain percentage
@@ -60,6 +62,11 @@ def set_vertices(elements,nR,nSq,dr):
             semi_major_row[1] = geom_prog(n_ellip_sq, a_min_sq, a_max_sq, j+1)
             semi_major_col[0] = geom_prog(n_ellip_sq, a_min_sq, a_max_sq, i)
             semi_major_col[1] = geom_prog(n_ellip_sq, a_min_sq, a_max_sq, i+1)
+#            semi_major_row[0] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, j)
+#            semi_major_row[1] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, j+1)
+#            semi_major_col[0] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, i)
+#            semi_major_col[1] = lin_dist(n_ellip_sq, a_min_sq, a_max_sq, i+1)
+
             rad_row[0] = j*dr    # small "radius"  
             rad_row[1] = (j+1)*dr   # large "radius"
             rad_col[0] = i*dr    # small "radius"  
@@ -108,136 +115,91 @@ def set_vertices(elements,nR,nSq,dr):
                 el.y = np.array([y0, y1, y2, y3])
             else:
                 sys.exit(1)
-
-#
-# ToDo: intersec_ellip_line between ellipses and different case behaviour
-# ToDo: more general semiaxis function that can be used for square and onion region
-
-
         else:                       
             # we are in the outer onion like region :-)
             i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
             k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
             j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first, start from j=0
             l = (nR - nSq) - (j+1)                              # onion like layer number, outer one is last l=0
-            rad[0] = (j+nSq)*dr    
-            rad[1] = (j+1+nSq)*dr
-#            r_min = (nSq+1)*dr  # minimum "radius" for ellipses
+
+            # Determine the semi-major axis for "onion" section
+            #----------------------------------------------------------------------
+            a_min_on = 1
+            b_on = 1
+
+            # determine the maxim semi-major axis at the edge to the square region
+            r_min_on = (nSq+1)*dr
+
+            delta_j = (nR-nSq)-1
+            # a_max is found at the lowest onion region where the elements at the border
+            # need to be outside of the square region
+            el_square = elements[nSq**2-1]  # last element in square region
+            gap = el_square.x[2] - el_square.x[3]   # keep a distance of "gap" to the last element 
+            # in square region
+            x_min_on = el_square.x[2]+gap/(2**0.5)
+            y_min_on = x_min_on
+            a_max_on = x_min_on*b_on/( (r_min_on**2*b_on**2-y_min_on**2)**(0.5) )
+            semi_major_on[0] = geom_prog(nR-nSq, a_min_on, a_max_on, j)
+            semi_major_on[1] = geom_prog(nR-nSq, a_min_on, a_max_on, j+1)
+            rad_on[0] = (j+nSq)*dr    
+            rad_on[1] = (j+1+nSq)*dr
             slope[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
             # of the element (upper part) or bottom side (lower part)
             slope[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
             # of the element (upper part) or top side (lower part)
-            drop = 0.8
-            semi_major[0] = semiaxis_on(elements, nR, nSq, dr, drop, 1, j)  # semi-major axis at layer j
-            semi_major[1] = semiaxis_on(elements, nR, nSq, dr, drop, 1, j+1)
-#            semi_major = lambda j: semiaxis_on(nR, nSq, dr, r_min, 1, j)    # semi-major axis at layer j
             if (i <= (nSq-1)):  # upper part, including border /
-                x0 = intersec_ellip_line(semi_major[0],1,rad[0]**2,slope[1],0)
-                x1 = intersec_ellip_line(semi_major[0],1,rad[0]**2,slope[0],0)
-                x2 = intersec_ellip_line(semi_major[1],1,rad[1]**2,slope[0],0)
-                x3 = intersec_ellip_line(semi_major[1],1,rad[1]**2,slope[1],0)
+                x0 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope[1],0)
+                x1 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope[0],0)
+                x2 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope[0],0)
+                x3 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope[1],0)
                 el.x = np.array([x0, x1, x2, x3])
                 if ( j==0 ):  # first layer
-                    el.x[0] = i*dr   # reset values in contact with the square region
-                    el.x[1] = (i+1)* dr
-                    el.y[0:2] = [nSq*dr, nSq*dr]    # lower edge is not deformed (yet)
-#                    el.y[0] = elements[nSq**2-nSq+i].y[3]
-#                    el.y[1] = elements[nSq**2-nSq+i].y[2]
-                    el.y[2:4] = ellipse(semi_major[1],1,rad[1]**2,el.x[2:4])
+                    # copy values from "square" region
+                    el.x[0] = elements[el.number-nSq-1].x[3]
+                    el.x[1] = elements[el.number-nSq-1].x[2]
+                    el.y[0] = elements[el.number-nSq-1].y[3]
+                    el.y[1] = elements[el.number-nSq-1].y[2]
+                    el.y[2:4] = ellipse(semi_major_on[1],1,rad_on[1]**2,el.x[2:4])
                 else:
-                    el.y[0:2] = ellipse(semi_major[0],1,rad[0]**2,el.x[0:2])
-                    el.y[2:4] = ellipse(semi_major[1],1,rad[1]**2,el.x[2:4])
+                    el.y[0:2] = ellipse(semi_major_on[0],1,rad_on[0]**2,el.x[0:2])
+                    el.y[2:4] = ellipse(semi_major_on[1],1,rad_on[1]**2,el.x[2:4])
             elif (i >= nSq):     # lower part, including border /
-                x0 = intersec_ellip_line(1,semi_major[0],rad[0]**2,slope[0],0)
-                x1 = intersec_ellip_line(1,semi_major[1],rad[1]**2,slope[0],0)
-                x2 = intersec_ellip_line(1,semi_major[1],rad[1]**2,slope[1],0)
-                x3 = intersec_ellip_line(1,semi_major[0],rad[0]**2,slope[1],0)
+                x0 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope[0],0)
+                x1 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope[0],0)
+                x2 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope[1],0)
+                x3 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope[1],0)
                 y0 = line(slope[0],x0,0)
                 y1 = line(slope[0],x1,0)
                 y2 = line(slope[1],x2,0)
                 y3 = line(slope[1],x3,0)
                 el.y = np.array([y0, y1, y2, y3])
                 if (j == 0):    # first layer
-                    el.y[0] = k*dr  # reset values in contact with the square region
-                    el.y[3] = (k+1)*dr
-                    el.x[0] = nSq*dr
-                    el.x[3] = nSq*dr
+                    # copy values from "square" region
+                    el.x[0] = elements[nSq*(k+1)-1].x[1]
+                    el.x[3] = elements[nSq*(k+1)-1].x[2]
+                    el.y[0] = elements[nSq*(k+1)-1].y[1]
+                    el.y[3] = elements[nSq*(k+1)-1].y[2]
                     el.x[1:3] = np.array([x1, x2])
                 else:
                     el.x = np.array([x0, x1, x2, x3])
 
-def semiaxis_sq(elements, nR, nSq, dr, drop, b, j):
-    """ Function for semiaxis dependence in the square region
-    
-    nR    : number of elements in radial direction
-    nSq   : number of square elements along one side
-    dr    : element length
-    drop  : drop by a certain percentage
-    b     : semi-minor axis of the ellipse (usually taken as 1)
-    j     : onion layer number (starting from 0, increasing outwards)
+
+def lin_dist(N, a_min, a_max, j):
+    """ Linear distribution 
+
+    N     : number of steps
+    a_min : starting value at j=1
+    a_max : maximum value at j=N
+    j     : step
     """
 
-    
-    # determine the minimum semi-major axis at the edge to the onion region
-    x_max = nSq*dr
-    r_max = x_max
-    y_max = x_max*drop   # drop by a certain percentage
-    a_min = x_max*b/( (r_max**2*b**2-y_max**2)**0.5 )
-    # beginning of onion region
-    delta_j = nSq-1
-
-    # determine the maximum semi-major axis at the first rows
-    r_min = dr 
-    y_min = dr*0.95   # first row drops by a certain percentage
-    a_max = x_max*b/( (r_min**2*b**2-y_min**2)**(0.5) )
-
-    # distribution of the semiaxis depends linear on onion layer number
-#    ret = a_max - (a_max-a_min)/delta_j * (j-1)  # a_max for j=1
-
-    # distribution of the semi-major axis depends quadratic on onion layer number
-    ret = (a_max-a_min)/( delta_j**2 ) * (j-(delta_j+1))**2 + a_min
+    ret = a_max - (a_max-a_min)/(N-1) * (j-1)
     return ret
-
-
-def semiaxis_on(elements, nR, nSq, dr, drop, b, j):
-    """ Function for semiaxis dependence in the onion region
-    
-    nR    : number of elements in radial direction
-    nSq   : number of square elements along one side
-    dr    : element length
-    b     : semi-minor axis of the ellipse (usually taken as 1)
-    j     : onion layer number (starting from 0, increasing outwards)
-    """
-
-    a_min = 1
-    r_min = (nSq+1)*dr
-    delta_j = (nR-nSq)-1
-    # a_max is found at the lowest onion region where the elements at the border
-    # need to be outside of the square region
-    el_square = elements[nSq**2-1]  # last element in square region
-    x_max = el_square.x[2]
-    y_max = x_max
-    a_max = x_max*b/( (r_min**2*b**2-y_max**2)**(0.5) )
-
-    # distribution of the semiaxis depends linear on onion layer number
-    ret = a_max - (a_max-a_min)/delta_j * (j-1)  # a_max for j=1
-
-    # distribution of the semi-major axis depends quadratic on onion layer number
-    ret = (a_max-a_min)/( delta_j**2 ) * (j-(delta_j+1))**2 + a_min
-    
-    # geometric progression: a(j) = a_0 * r**j
-    N = (nR-nSq)+1  # number of ellipses
-    r = m.exp(m.log(a_min/a_max)/N)
-    ret  = a_max * r**(j-1)
-
-    return ret
-
-#def quad_dist(N, a_min, a_max, j):
-#    """ Quadratic distribution a(j) = p1*j**2 + p2 with a(
 
 
 def geom_prog(N, a_min, a_max, j):
     """ Geometric progression a(j) = a_min * r**j 
+
     with a(1) = a_max 
     and a(N) = a_min*r**N = a_max
 
@@ -246,14 +208,10 @@ def geom_prog(N, a_min, a_max, j):
     a_max : maximum value
     j     : step
     """
-    r = m.exp(m.log(a_min/a_max)/N)
-    ret  = a_max * r**(j)
+    r = m.exp(m.log(a_min/a_max)/(N-1))
+    ret  = a_max * r**(j-1)
 
     return ret
-
-
-
-
 
 
 def ellipse(a,b,c,x):
@@ -268,6 +226,7 @@ def ellipse(a,b,c,x):
     ret = b*(c-x**2/a**2)**(0.5)
     return ret
 
+
 def line(m,x,d):
     """ Straight line with y = m*x + d 
     
@@ -277,6 +236,7 @@ def line(m,x,d):
 
     ret = m*x+d
     return ret
+
 
 def intersec_ellip_line(a,b,c,m,d):
     """ Intersection between ellipse and straight line. 
@@ -293,6 +253,7 @@ def intersec_ellip_line(a,b,c,m,d):
     B = (d**2-b**2*c)/(m**2+b**2/a**2)
     x = - A/2 + ( A**2/4 - B )**(0.5)
     return x
+
 
 def intersec_ellip_ellip(a1,b1,rhs1,a2,b2,rhs2):
     """ Intersection between two ellipses.
@@ -311,6 +272,7 @@ def intersec_ellip_ellip(a1,b1,rhs1,a2,b2,rhs2):
     x = ( ( b1**2*rhs1 - b2**2*rhs2 ) / ( (b1/a1)**2 - (b2/a2)**2 ) )**0.5
 #    pdb.set_trace()
     return x
+
 
 def set_bc(elements,nR,nSq):
     """ Set boundary conditions for each face. """
