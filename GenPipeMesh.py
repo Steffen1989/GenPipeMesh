@@ -21,9 +21,9 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-nR = 8
+nR = 4
 #nSq = 19
-nSq = 4         # nel in square region along one side of the square
+nSq = 2         # nel in square region along one side of the square
 
 # Define global variables here:
 #----------------------------------------------------------------------
@@ -97,6 +97,8 @@ nek_utils.compl_mesh(el_list,nR,nSq)
 #----------------------------------------------------------------------
 ## A.2.3: Set boundary conditions
 #----------------------------------------------------------------------
+nek_utils.set_bc_q2(el_list,nR,nSq)
+nek_utils.set_bc_q3(el_list,nR,nSq)
 nek_utils.set_bc_q4(el_list,nR,nSq)
 
 
