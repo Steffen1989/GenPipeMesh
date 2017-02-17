@@ -21,9 +21,9 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-nR = 4
+nR = 8
 #nSq = 19
-nSq = 2         # nel in square region along one side of the square
+nSq = 4         # nel in square region along one side of the square
 
 # Define global variables here:
 #----------------------------------------------------------------------
