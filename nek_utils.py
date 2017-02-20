@@ -1075,13 +1075,14 @@ def check_position(element, nR, nSq):
             elif (j==(nR-nSq)-1):
                 if (k==nSq-1):   # east wall north edge
                     el.pos = 'on_low_east_wall_north_edge'
-                elif (k==nSq-1):     # north edge
-                    el.pos = 'on_low_north_edge'
                     return
-                else:
+                else: 
                     el.pos = 'on_low_east_wall'
                     return
-                        ## interal lower part
+            elif (k==nSq-1):     # north edge
+                    el.pos = 'on_low_north_edge'
+                    return
+            ## interal lower part
             else:
                 el.pos = 'on_low_intern'
                 return
@@ -1218,7 +1219,7 @@ def rea_skel():
     f.write('   0.00000     P051: \n')
     f.write('   0.00000     P052: IOHIS\n')
     f.write('   0.00000     P053: \n')
-    f.write('  -1.00000     P054: fixed flow rate dir: |p54|=1,2,3=x,y,z\n')
+    f.write('  -3.00000     P054: fixed flow rate dir: |p54|=1,2,3=x,y,z\n')
     f.write('   1.00000     P055: vol.flow rate (p54>0) or Ubar (p54<0)\n')
     f.write('   0.00000     P056: \n')
     f.write('   0.00000     P057: \n')
