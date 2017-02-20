@@ -26,16 +26,21 @@ def set_vertices(elements,nR,nSq,dr):
     in the outermost layer which gives a circle. The semi-minor axis is 
     kept at b=1. The radius (constant) c is changed according to the 
     radius at the y axis (x=0) 
+    Idea: keep constant = 1 and change semi-minor axis accordingly
     """
     
     # Variable definitions
     ntheta = nSq*2  # number of elements in one onion layer
-    rad_on = np.zeros(2)       # "radius": constant in ellipse equation
-    rad_row = np.zeros(2)       # "radius": constant in ellipse equation
-    rad_col = np.zeros(2)       # "radius": constant in ellipse equation
+    r_const = 1         # constant in ellipses
+#    rad_on = np.zeros(2)       # "radius": constant in ellipse equation
+#    rad_row = np.zeros(2)       # "radius": constant in ellipse equation
+#    rad_col = np.zeros(2)       # "radius": constant in ellipse equation
     semi_major_on = np.zeros(2)    # semi-major axis
     semi_major_row = np.zeros(2)    
     semi_major_col = np.zeros(2)
+    semi_minor_on = np.zeros(2)    # semi-minor axis
+    semi_minor_row = np.zeros(2)    
+    semi_minor_col = np.zeros(2)
     slope_on = np.zeros(2)     # slope of straight lines
     slope_row = np.zeros(2)
     slope_col = np.zeros(2)
@@ -57,13 +62,15 @@ def set_vertices(elements,nR,nSq,dr):
             # Determine the semi-major axis for "square" section
             #----------------------------------------------------------------------
             # determine the minimum semi-major axis at the edge to the onion region
-            b_sq = 1
+#            b_sq = 1
             drop_sq_max = 0.70         # max drop in percent compared to all squares
             n_ellip_sq = nSq  # number of ellipses
             x_max_sq = nSq*dr
-            r_max_sq = x_max_sq
+#            r_max_sq = x_max_sq
+#            r_max_sq = 1
+            b_sq_max = x_max_sq # semi-minor axis
             y_max_sq = x_max_sq*drop_sq_max
-            a_min_sq = x_max_sq*b_sq/( (r_max_sq**2*b_sq**2-y_max_sq**2)**0.5 )
+            a_min_sq = x_max_sq*b_sq_max/( (r_const**2*b_sq_max**2-y_max_sq**2)**0.5 )
 
             # Idea: define ellipses in the inner region such that they coincide with the 
             # element in the onion region.
@@ -74,77 +81,77 @@ def set_vertices(elements,nR,nSq,dr):
             slope_col[0] = m.tan(m.pi/2*((ntheta-i)/ntheta))  # slope of the straight line on the left side
             slope_col[1] = m.tan(m.pi/2*((ntheta-i-1)/ntheta)) # slope of the straight line on the right side
 
-            rad_row[0] = j*dr    # small "radius"  
-            rad_row[1] = (j+1)*dr   # large "radius"
-            rad_col[0] = i*dr    # small "radius"  
-            rad_col[1] = (i+1)*dr   # large "radius"
+            semi_minor_row[0] = j*dr    # small semi-minor axis  
+            semi_minor_row[1] = (j+1)*dr   # large semi-minor axis
+            semi_minor_col[0] = i*dr    # small semi-minor axis  
+            semi_minor_col[1] = (i+1)*dr   # large semi-minor axis
 
-            x_inters_row[0] = intersec_ellip_line(b_sq,a_min_sq,r_max_sq**2,slope_row[0],0)
-            x_inters_row[1] = intersec_ellip_line(b_sq,a_min_sq,r_max_sq**2,slope_row[1],0)
+            x_inters_row[0] = intersec_ellip_line(b_sq_max,a_min_sq,r_const,slope_row[0],0)
+            x_inters_row[1] = intersec_ellip_line(b_sq_max,a_min_sq,r_const,slope_row[1],0)
             y_inters_row[0] = line(slope_row[0],x_inters_row[0],0)
             y_inters_row[1] = line(slope_row[1],x_inters_row[1],0)
 
-            x_inters_col[0] = intersec_ellip_line(a_min_sq,b_sq,r_max_sq**2,slope_col[0],0)
-            x_inters_col[1] = intersec_ellip_line(a_min_sq,b_sq,r_max_sq**2,slope_col[1],0)
+            x_inters_col[0] = intersec_ellip_line(a_min_sq,b_sq_max,r_const,slope_col[0],0)
+            x_inters_col[1] = intersec_ellip_line(a_min_sq,b_sq_max,r_const,slope_col[1],0)
             y_inters_col[0] = line(slope_col[0],x_inters_col[0],0)
             y_inters_col[1] = line(slope_col[1],x_inters_col[1],0)
 
             if (j==0):
                 semi_major_row[0] = 0   # this is reset later
-                semi_major_row[1] = x_inters_row[1]*b_sq/( (rad_row[1]**2*b_sq**2 - y_inters_row[1]**2)**0.5 )
+                semi_major_row[1] = x_inters_row[1]*semi_minor_row[1]/( (r_const**2*semi_minor_row[1]**2 - y_inters_row[1]**2)**0.5 )
             else: 
-                semi_major_row[0] = x_inters_row[0]*b_sq/( (rad_row[0]**2*b_sq**2 - y_inters_row[0]**2)**0.5 )
-                semi_major_row[1] = x_inters_row[1]*b_sq/( (rad_row[1]**2*b_sq**2 - y_inters_row[1]**2)**0.5 )
+                semi_major_row[0] = x_inters_row[0]*semi_minor_row[0]/( (r_const**2*semi_minor_row[0]**2 - y_inters_row[0]**2)**0.5 )
+                semi_major_row[1] = x_inters_row[1]*semi_minor_row[1]/( (r_const**2*semi_minor_row[1]**2 - y_inters_row[1]**2)**0.5 )
 
             if (i==0):                # note that x and y need to be switched here
                 semi_major_col[0] = 0   # this is reset later 
-                semi_major_col[1] = y_inters_col[1]*b_sq/( (rad_col[1]**2*b_sq**2 - x_inters_col[1]**2)**0.5 )
+                semi_major_col[1] = y_inters_col[1]*semi_minor_col[1]/( (r_const**2*semi_minor_col[1]**2 - x_inters_col[1]**2)**0.5 )
             else:
-                semi_major_col[0] = y_inters_col[0]*b_sq/( (rad_col[0]**2*b_sq**2 - x_inters_col[0]**2)**0.5 )
-                semi_major_col[1] = y_inters_col[1]*b_sq/( (rad_col[1]**2*b_sq**2 - x_inters_col[1]**2)**0.5 )
+                semi_major_col[0] = y_inters_col[0]*semi_minor_col[0]/( (r_const**2*semi_minor_col[0]**2 - x_inters_col[0]**2)**0.5 )
+                semi_major_col[1] = y_inters_col[1]*semi_minor_col[1]/( (r_const**2*semi_minor_col[1]**2 - x_inters_col[1]**2)**0.5 )
 
             # CLOSE def semi-major axis
             #--------------------------------------------------
 
             if (j==0): # first row
                 if (i==0):  # first col
-                    x2 = intersec_ellip_ellip(semi_major_row[1],b_sq,rad_row[1]**2,\
-                            b_sq,semi_major_col[1],rad_col[1]**2)
-                    y2 = ellipse(semi_major_row[1],b_sq,rad_row[1]**2,x2)
+                    x2 = intersec_ellip_ellip(semi_major_row[1],semi_minor_row[1],r_const**2,\
+                            semi_minor_col[1],semi_major_col[1],r_const**2)
+                    y2 = ellipse(semi_major_row[1],semi_minor_row[1],r_const**2,x2)
                     el.x = np.array([i*dr, (i+1)*dr, x2, i*dr])
                     el.y = np.array([j*dr, j*dr, y2, (j+1)*dr])
                 else:
-                    x2 = intersec_ellip_ellip(semi_major_row[1],b_sq,rad_row[1]**2,\
-                            b_sq,semi_major_col[1],rad_col[1]**2)
-                    x3 = intersec_ellip_ellip(semi_major_row[1],b_sq,rad_row[1]**2,\
-                            b_sq,semi_major_col[0],rad_col[0]**2)
-                    y2 = ellipse(semi_major_row[1],b_sq,rad_row[1]**2,x2)
-                    y3 = ellipse(semi_major_row[1],b_sq,rad_row[1]**2,x3)
+                    x2 = intersec_ellip_ellip(semi_major_row[1],semi_minor_row[1],r_const**2,\
+                            semi_minor_col[1],semi_major_col[1],r_const**2)
+                    x3 = intersec_ellip_ellip(semi_major_row[1],semi_minor_row[1],r_const**2,\
+                            semi_minor_col[0],semi_major_col[0],r_const**2)
+                    y2 = ellipse(semi_major_row[1],semi_minor_row[1],r_const**2,x2)
+                    y3 = ellipse(semi_major_row[1],semi_minor_row[1],r_const**2,x3)
                     el.x = np.array([i*dr, (i+1)*dr, x2, x3])
                     el.y = np.array([j*dr, j*dr, y2, y3])
             elif (j>0 and i==0): # first col
-                x1 = intersec_ellip_ellip(semi_major_row[0],b_sq,rad_row[0]**2,\
-                        b_sq,semi_major_col[1],rad_col[1]**2)
-                x2 = intersec_ellip_ellip(semi_major_row[1],b_sq,rad_row[1]**2,\
-                        b_sq,semi_major_col[1],rad_col[1]**2)
-                y1 = ellipse(semi_major_row[0],b_sq,rad_row[0]**2,x1)
-                y2 = ellipse(semi_major_row[1],b_sq,rad_row[1]**2,x2)
+                x1 = intersec_ellip_ellip(semi_major_row[0],semi_minor_row[0],r_const**2,\
+                        semi_minor_col[1],semi_major_col[1],r_const**2)
+                x2 = intersec_ellip_ellip(semi_major_row[1],semi_minor_row[1],r_const**2,\
+                        semi_minor_col[1],semi_major_col[1],r_const**2)
+                y1 = ellipse(semi_major_row[0],semi_minor_row[0],r_const**2,x1)
+                y2 = ellipse(semi_major_row[1],semi_minor_row[1],r_const**2,x2)
                 el.x = np.array([i*dr, x1, x2, i*dr])
                 el.y = np.array([j*dr, y1, y2, (j+1)*dr])
             elif (i> 0 and j>0):    # inside
                 #find intersection between both ellipses
-                x0 = intersec_ellip_ellip(semi_major_row[0],b_sq,rad_row[0]**2,\
-                        b_sq,semi_major_col[0],rad_col[0]**2)
-                x1 = intersec_ellip_ellip(semi_major_row[0],b_sq,rad_row[0]**2,\
-                        b_sq,semi_major_col[1],rad_col[1]**2)
-                x2 = intersec_ellip_ellip(semi_major_row[1],b_sq,rad_row[1]**2,\
-                        b_sq,semi_major_col[1],rad_col[1]**2)
-                x3 = intersec_ellip_ellip(semi_major_row[1],b_sq,rad_row[1]**2,\
-                        b_sq,semi_major_col[0],rad_col[0]**2)
-                y0 = ellipse(semi_major_row[0],b_sq,rad_row[0]**2,x0)
-                y1 = ellipse(semi_major_row[0],b_sq,rad_row[0]**2,x1)
-                y2 = ellipse(semi_major_row[1],b_sq,rad_row[1]**2,x2)
-                y3 = ellipse(semi_major_row[1],b_sq,rad_row[1]**2,x3)
+                x0 = intersec_ellip_ellip(semi_major_row[0],semi_minor_row[0],r_const**2,\
+                        semi_minor_col[0],semi_major_col[0],r_const**2)
+                x1 = intersec_ellip_ellip(semi_major_row[0],semi_minor_row[0],r_const**2,\
+                        semi_minor_col[1],semi_major_col[1],r_const**2)
+                x2 = intersec_ellip_ellip(semi_major_row[1],semi_minor_row[1],r_const**2,\
+                        semi_minor_col[1],semi_major_col[1],r_const**2)
+                x3 = intersec_ellip_ellip(semi_major_row[1],semi_minor_row[1],r_const**2,\
+                        semi_minor_col[0],semi_major_col[0],r_const**2)
+                y0 = ellipse(semi_major_row[0],semi_minor_row[0],r_const**2,x0)
+                y1 = ellipse(semi_major_row[0],semi_minor_row[0],r_const**2,x1)
+                y2 = ellipse(semi_major_row[1],semi_minor_row[1],r_const**2,x2)
+                y3 = ellipse(semi_major_row[1],semi_minor_row[1],r_const**2,x3)
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
             else:
@@ -162,48 +169,53 @@ def set_vertices(elements,nR,nSq,dr):
 
             # Determine the semi-major axis for "onion" section
             #----------------------------------------------------------------------
-            a_min_on = 1
-            b_on = 1
+            a_sq_on = 0.5
+#            b_max_on = 1
+#            b_on = 1
 
             # determine the maxim semi-major axis at the edge to the square region
-            r_min_on = (nSq)*dr
+#            r_min_on = (nSq)*dr
+#            b_min_on = (nSq)*dr
 
             # a_max is found at the lowest onion region where the elements at the border
             # need to be outside of the square region
-            el_square = elements[nSq**2-1]  # last element in square region
+#            el_square = elements[nSq**2-1]  # last element in square region
             # in square region
-            x_min_on = el_square.x[2]
-            y_min_on = x_min_on
-            a_max_on = x_min_on*b_on/( (r_min_on**2*b_on**2-y_min_on**2)**(0.5) )
+#            x_min_on = el_square.x[2]
+#            y_min_on = x_min_on
+#            a_max_on = x_min_on*b_min_on/( (r_const**2*b_min_on**2-y_min_on**2)**(0.5) )
             
-            a_max_on = a_min_sq
-            semi_major_on[0] = geom_prog(nR-nSq, a_min_on, a_max_on, j)
-            semi_major_on[1] = geom_prog(nR-nSq, a_min_on, a_max_on, j+1)
-            semi_major_on[0] = lin_dist(nR-nSq, a_min_on, a_max_on, j)
-            semi_major_on[1] = lin_dist(nR-nSq, a_min_on, a_max_on, j+1)
-            semi_major_on[0] = quad_dist(nR-nSq, a_min_on, a_max_on, j)
-            semi_major_on[1] = quad_dist(nR-nSq, a_min_on, a_max_on, j+1)
+            a_wall_on = a_min_sq
+            semi_major_on[0] = geom_prog(nR-nSq, a_sq_on, a_wall_on, j)
+            semi_major_on[1] = geom_prog(nR-nSq, a_sq_on, a_wall_on, j+1)
+            semi_major_on[0] = lin_dist(nR-nSq, a_sq_on, a_wall_on, j)
+            semi_major_on[1] = lin_dist(nR-nSq, a_sq_on, a_wall_on, j+1)
+            semi_major_on[0] = quad_dist(nR-nSq, a_sq_on, a_wall_on, j)
+            semi_major_on[1] = quad_dist(nR-nSq, a_sq_on, a_wall_on, j+1)
+            print(semi_major_on)
 
 
-            rad_on[0] = (j+nSq)*dr    
-            rad_on[1] = (j+1+nSq)*dr
+#            rad_on[0] = (j+nSq)*dr    
+#            rad_on[1] = (j+1+nSq)*dr
+            semi_minor_on[0] = (j+nSq)*dr
+            semi_minor_on[1] = (j+1+nSq)*dr
             slope_on[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
             # of the element (upper part) or bottom side (lower part)
             slope_on[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
             # of the element (upper part) or top side (lower part)
             if (i <= (nSq-1)):  # upper part, including border /
-                x0 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope_on[1],0)
-                x1 = intersec_ellip_line(semi_major_on[0],1,rad_on[0]**2,slope_on[0],0)
-                x2 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope_on[0],0)
-                x3 = intersec_ellip_line(semi_major_on[1],1,rad_on[1]**2,slope_on[1],0)
+                x0 = intersec_ellip_line(semi_major_on[0],semi_minor_on[0],r_const**2,slope_on[1],0)
+                x1 = intersec_ellip_line(semi_major_on[0],semi_minor_on[0],r_const**2,slope_on[0],0)
+                x2 = intersec_ellip_line(semi_major_on[1],semi_minor_on[1],r_const**2,slope_on[0],0)
+                x3 = intersec_ellip_line(semi_major_on[1],semi_minor_on[1],r_const**2,slope_on[1],0)
                 el.x = np.array([x0, x1, x2, x3])
-                el.y[0:2] = ellipse(semi_major_on[0],1,rad_on[0]**2,el.x[0:2])
-                el.y[2:4] = ellipse(semi_major_on[1],1,rad_on[1]**2,el.x[2:4])
+                el.y[0:2] = ellipse(semi_major_on[0],semi_minor_on[0],r_const**2,el.x[0:2])
+                el.y[2:4] = ellipse(semi_major_on[1],semi_minor_on[1],r_const**2,el.x[2:4])
             elif (i >= nSq):     # lower part, including border /
-                x0 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope_on[0],0)
-                x1 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope_on[0],0)
-                x2 = intersec_ellip_line(1,semi_major_on[1],rad_on[1]**2,slope_on[1],0)
-                x3 = intersec_ellip_line(1,semi_major_on[0],rad_on[0]**2,slope_on[1],0)
+                x0 = intersec_ellip_line(semi_minor_on[0],semi_major_on[0],r_const**2,slope_on[0],0)
+                x1 = intersec_ellip_line(semi_minor_on[1],semi_major_on[1],r_const**2,slope_on[0],0)
+                x2 = intersec_ellip_line(semi_minor_on[1],semi_major_on[1],r_const**2,slope_on[1],0)
+                x3 = intersec_ellip_line(semi_minor_on[0],semi_major_on[0],r_const**2,slope_on[1],0)
                 y0 = line(slope_on[0],x0,0)
                 y1 = line(slope_on[0],x1,0)
                 y2 = line(slope_on[1],x2,0)
