@@ -120,6 +120,10 @@ nek_utils.write_mesh(el_list)
 #----------------------------------------------------------------------
 nek_utils.write_bc(el_list, nR, nSq)
 
+## C: Do some checks
+#----------------------------------------------------------------------
+nek_utils.check_length(el_list, nR, nSq)
+
 
 
 

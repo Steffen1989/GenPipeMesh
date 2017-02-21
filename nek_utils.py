@@ -64,8 +64,10 @@ def set_vertices(elements,nR,nSq,dr):
 
             b_interface = x_interface # semi-minor axis
             y_sq_interface = x_interface*drop
-            a_interface = x_interface*b_interface/( (r_const**2*b_interface**2-y_sq_interface**2)**0.5 )
-            #a_interface = b_interface/(m.tan(m.pi/12))**0.5
+            # drop by a certain percentage
+#            a_interface = x_interface*b_interface/( (r_const**2*b_interface**2-y_sq_interface**2)**0.5 )
+            # set corner angle = 120°
+            a_interface = b_interface/(m.tan(m.pi/12))**0.5
 
             # Idea: define ellipses in the inner region such that they coincide with the 
             # element in the onion region.
@@ -1336,3 +1338,60 @@ def rea_skel():
     f.write('        0 Edge    Objects\n')
     f.write('        0 Point   Objects\n')
     f.close()
+
+
+def check_length(elements, nR, nSq):
+    """ Find minimum and maximum radial and circumferential 
+    element lengths.
+    """
+    
+    # only check first quadrant
+    nel_quarter = nSq**2 + (nR-nSq)*2*nSq       # number of elements in one quarter
+    elements = elements[0:nel_quarter]
+    l_r_max = 0
+    l_r_min = 1e5
+    l_p_max = 0
+    l_p_min = 1e5
+
+
+    for el in elements:
+        n = el.number
+        i = ((n-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
+
+
+        if (n <= nSq**2 or i < nSq):    # either in "square" section or upper onion part
+            l_rad = np.array([ ((el.x[3]-el.x[0])**2 + (el.y[3]-el.y[0])**2)**0.5 ,\
+                    ((el.x[2]-el.x[1])**2 + (el.y[2]-el.y[1])**2)**0.5])
+            l_phi = np.array([ ((el.x[2]-el.x[3])**2 + (el.y[2]-el.y[3])**2)**0.5 ,\
+                    ((el.x[1]-el.x[0])**2 + (el.y[1]-el.y[0])**2)**0.5])
+
+            l_rad_max = max(l_rad)
+            l_rad_min = min(l_rad)
+            l_phi_max = max(l_phi)
+            l_phi_min = min(l_phi)
+
+
+            # update previous values if necessary
+            if (l_rad_max > l_r_max):
+                l_r_max = l_rad_max
+                el_r_max = n
+            if (l_rad_min < l_r_min):
+                l_r_min = l_rad_min
+                el_r_min = n
+            if (l_phi_max > l_p_max):
+                l_p_max = l_phi_max
+                el_p_max = n
+            if (l_phi_min < l_p_min):
+                l_p_min = l_phi_min
+                el_p_min = n
+
+
+    # Write a little output to stdout
+    print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    print('Some information about the mesh size:')
+    print('Delta R max = {0:12.5f} at {2:d}\nDelta R min = {1:12.5f} at {3:d}'.format(l_r_max, l_r_min, el_r_max, el_r_min))
+    print('Delta phi max = {0:10.5f} at {2:d}\nDelta phi min = {1:10.5f} at {3:d}'.format(l_p_max, l_p_min, el_p_max, el_p_min))
+    print('Note that curvature is not considered here!')
+    print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+
+
