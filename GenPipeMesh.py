@@ -122,7 +122,7 @@ nek_utils.write_bc(el_list, nR, nSq)
 
 ## C: Do some checks
 #----------------------------------------------------------------------
-nek_utils.check_length(el_list, nR, nSq)
+nek_utils.check_mesh_quality(el_list, nR, nSq)
 
 
 

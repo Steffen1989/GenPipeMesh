@@ -1340,9 +1340,9 @@ def rea_skel():
     f.close()
 
 
-def check_length(elements, nR, nSq):
+def check_mesh_quality(elements, nR, nSq):
     """ Find minimum and maximum radial and circumferential 
-    element lengths.
+    element lengths and element angles (distortion from 90°).
     """
     
     # only check first quadrant
@@ -1352,6 +1352,8 @@ def check_length(elements, nR, nSq):
     l_r_min = 1e5
     l_p_max = 0
     l_p_min = 1e5
+    alph_max = m.pi/4
+    alph_min = m.pi/2
 
 
     for el in elements:
@@ -1360,16 +1362,43 @@ def check_length(elements, nR, nSq):
 
 
         if (n <= nSq**2 or i < nSq):    # either in "square" section or upper onion part
-            l_rad = np.array([ ((el.x[3]-el.x[0])**2 + (el.y[3]-el.y[0])**2)**0.5 ,\
-                    ((el.x[2]-el.x[1])**2 + (el.y[2]-el.y[1])**2)**0.5])
-            l_phi = np.array([ ((el.x[2]-el.x[3])**2 + (el.y[2]-el.y[3])**2)**0.5 ,\
-                    ((el.x[1]-el.x[0])**2 + (el.y[1]-el.y[0])**2)**0.5])
+            vec1 = np.array([el.x[1]-el.x[0], el.y[1]-el.y[0]])  # corresponds to face 1
+            vec1_norm = np.linalg.norm(vec1)
+            vec2 = np.array([el.x[2]-el.x[1], el.y[2]-el.y[1]])  # corresponds to face 2
+            vec2_norm = np.linalg.norm(vec2)
+            vec3 = np.array([el.x[3]-el.x[2], el.y[3]-el.y[2]])  # corresponds to face 3
+            vec3_norm = np.linalg.norm(vec3)
+            vec4 = np.array([el.x[0]-el.x[3], el.y[0]-el.y[3]])  # corresponds to face 4
+            vec4_norm = np.linalg.norm(vec4)
+
+            l_rad = np.array([ vec4_norm, vec2_norm ])
+            l_phi = np.array([ vec1_norm, vec3_norm ])
+
+            alpha_12 = vec_angle(vec1, vec2)
+            alpha_23 = vec_angle(vec2, vec3)
+            alpha_34 = vec_angle(vec3, vec4)
+            alpha_41 = vec_angle(vec4, vec1)
+ 
+#            alpha_12 = m.atan2(vec2[1], vec2[0]) - m.atan2(vec1[1], vec1[0])
+#            alpha_23 = m.atan2(vec3[1], vec3[0]) - m.atan2(vec2[1], vec2[0])
+#            alpha_34 = m.atan2(vec4[1], vec4[0]) - m.atan2(vec3[1], vec3[0])
+#            alpha_41 = m.atan2(vec1[1], vec1[0]) - m.atan2(vec4[1], vec4[0])
+
+#            alpha_12 = np.arccos(np.dot(vec1, vec2)/(vec1_norm*vec2_norm))
+#            alpha_23 = np.arccos(np.dot(vec2, vec3)/(vec2_norm*vec3_norm))
+#            alpha_34 = np.arccos(np.dot(vec3, vec4)/(vec3_norm*vec4_norm))
+#            alpha_41 = np.arccos(np.dot(vec4, vec1)/(vec4_norm*vec1_norm))
+ 
+            alpha = np.array([ alpha_12, alpha_23, alpha_34, alpha_41 ])
+            print(alpha/m.pi*180, n)
 
             l_rad_max = max(l_rad)
             l_rad_min = min(l_rad)
             l_phi_max = max(l_phi)
             l_phi_min = min(l_phi)
 
+            alpha_max = max(alpha)
+            alpha_min = min(alpha)
 
             # update previous values if necessary
             if (l_rad_max > l_r_max):
@@ -1384,6 +1413,12 @@ def check_length(elements, nR, nSq):
             if (l_phi_min < l_p_min):
                 l_p_min = l_phi_min
                 el_p_min = n
+            if (alpha_max > alph_min):
+                alph_max = alpha_max
+                el_alph_max = n
+            if (alpha_min < alph_min):
+                alph_min = alpha_min
+                el_alph_min = n
 
 
     # Write a little output to stdout
@@ -1391,7 +1426,25 @@ def check_length(elements, nR, nSq):
     print('Some information about the mesh size:')
     print('Delta R max = {0:12.5f} at {2:d}\nDelta R min = {1:12.5f} at {3:d}'.format(l_r_max, l_r_min, el_r_max, el_r_min))
     print('Delta phi max = {0:10.5f} at {2:d}\nDelta phi min = {1:10.5f} at {3:d}'.format(l_p_max, l_p_min, el_p_max, el_p_min))
+    print('alpha max = {0:10.5f}° at {2:d}\nalpha min = {1:10.5f}° at {3:d}'.format(alph_max/m.pi*180, alph_min/m.pi*180, el_alph_max, el_alph_min))
     print('Note that curvature is not considered here!')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+
+
+def vec_angle(vec1, vec2):
+    """ Return the angle between two vectors """
+
+    a1 = m.atan2(vec1[1],vec1[0])
+    a2 = m.atan2(vec2[1],vec2[0])
+
+    if (a1*a2 >= 0 ): # both are positive or both negative
+        return m.pi - (a2-a1)
+    elif (a1 < 0 and a2 > 0):
+        return m.pi - (a2-a1)
+    elif (a2 < 0 and a1 > 0):
+        return a1-a2
+    else:
+        print(a1, a2)
+
 
 
