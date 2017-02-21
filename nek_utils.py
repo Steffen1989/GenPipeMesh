@@ -1374,10 +1374,11 @@ def check_mesh_quality(elements, nR, nSq):
             l_rad = np.array([ vec4_norm, vec2_norm ])
             l_phi = np.array([ vec1_norm, vec3_norm ])
 
-            alpha_12 = vec_angle(vec1, vec2)
-            alpha_23 = vec_angle(vec2, vec3)
-            alpha_34 = vec_angle(vec3, vec4)
-            alpha_41 = vec_angle(vec4, vec1)
+
+            alpha_12 = vec_angle(-vec1, vec2)
+            alpha_23 = vec_angle(vec2, -vec3)
+            alpha_34 = vec_angle(-vec3, vec4)
+            alpha_41 = vec_angle(-vec4, vec1)
  
 #            alpha_12 = m.atan2(vec2[1], vec2[0]) - m.atan2(vec1[1], vec1[0])
 #            alpha_23 = m.atan2(vec3[1], vec3[0]) - m.atan2(vec2[1], vec2[0])
@@ -1390,7 +1391,7 @@ def check_mesh_quality(elements, nR, nSq):
 #            alpha_41 = np.arccos(np.dot(vec4, vec1)/(vec4_norm*vec1_norm))
  
             alpha = np.array([ alpha_12, alpha_23, alpha_34, alpha_41 ])
-            print(alpha/m.pi*180, n)
+            print(alpha/m.pi*180, np.sum(alpha)/m.pi*180, n)
 
             l_rad_max = max(l_rad)
             l_rad_min = min(l_rad)
@@ -1413,7 +1414,7 @@ def check_mesh_quality(elements, nR, nSq):
             if (l_phi_min < l_p_min):
                 l_p_min = l_phi_min
                 el_p_min = n
-            if (alpha_max > alph_min):
+            if (alpha_max > alph_max):
                 alph_max = alpha_max
                 el_alph_max = n
             if (alpha_min < alph_min):
@@ -1434,17 +1435,21 @@ def check_mesh_quality(elements, nR, nSq):
 def vec_angle(vec1, vec2):
     """ Return the angle between two vectors """
 
+    if (vec1[1] == -0.0):   # for elements in first row vec1[1] == -0.0
+        vec1[1] = 0.0
+
     a1 = m.atan2(vec1[1],vec1[0])
     a2 = m.atan2(vec2[1],vec2[0])
 
-    if (a1*a2 >= 0 ): # both are positive or both negative
-        return m.pi - (a2-a1)
-    elif (a1 < 0 and a2 > 0):
-        return m.pi - (a2-a1)
-    elif (a2 < 0 and a1 > 0):
-        return a1-a2
-    else:
-        print(a1, a2)
+    return m.fabs(a1-a2)
+#    if (a1*a2 >= 0 ): # both are positive or both negative
+#        return m.pi - (a2-a1)
+#    elif (a1 < 0 and a2 > 0):
+#        return m.pi - (a2-a1)
+#    elif (a2 < 0 and a1 > 0):
+#        return a1-a2
+#    else:
+#        print(a1, a2)
 
 
 
