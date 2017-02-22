@@ -3,18 +3,9 @@ import sys
 import pdb
 import numpy as np
 import math as m
+import my_math
 import elementclass
 
-
-#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-# The vertices are set in a special way. For now the inner section, 
-# called square section, is just a regular square. The outer part, 
-# called onion region, is built up by ellipses and straight lines.
-# The semi-major axis a is decreasing each layer outwards so that a=1
-# in the outermost layer which gives a circle. The semi-minor axis is 
-# kept at b=1. The radius (constant) c is changed according to the 
-# radius at the y axis (x=0) 
-#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 def set_vertices(elements,nR,nSq,dr_sq, dr_on):
     """ Set vertex location for each element. 
@@ -64,10 +55,11 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
 #            x_interface = nSq*dr_sq
 
             b_interface = x_interface # semi-minor axis
-#            y_sq_interface = x_interface*drop
-            # drop by a certain percentage
+            y_sq_interface = x_interface*drop
+
+            # Option1: Drop by a certain percentage
 #            a_interface = x_interface*b_interface/( (r_const**2*b_interface**2-y_sq_interface**2)**0.5 )
-            # set corner angle = 120°
+            # Opiton2: Set corner angle = 120°
             a_interface = b_interface/(m.tan(m.pi/12))**0.5
 
             # Idea: define ellipses in the inner region such that they coincide with the 
@@ -89,15 +81,15 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
             b_col[0] = np.sum(dr_sq[:i])    # small semi-minor axis  
             b_col[1] = np.sum(dr_sq[:i+1])   # large semi-minor axis
 
-            x_inters_row[0] = intersec_ellip_line(b_interface,a_interface,r_const,slope_row[0],0)
-            x_inters_row[1] = intersec_ellip_line(b_interface,a_interface,r_const,slope_row[1],0)
-            y_inters_row[0] = line(slope_row[0],x_inters_row[0],0)
-            y_inters_row[1] = line(slope_row[1],x_inters_row[1],0)
+            x_inters_row[0] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[0],0)
+            x_inters_row[1] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[1],0)
+            y_inters_row[0] = my_math.line(slope_row[0],x_inters_row[0],0)
+            y_inters_row[1] = my_math.line(slope_row[1],x_inters_row[1],0)
 
-            x_inters_col[0] = intersec_ellip_line(a_interface,b_interface,r_const,slope_col[0],0)
-            x_inters_col[1] = intersec_ellip_line(a_interface,b_interface,r_const,slope_col[1],0)
-            y_inters_col[0] = line(slope_col[0],x_inters_col[0],0)
-            y_inters_col[1] = line(slope_col[1],x_inters_col[1],0)
+            x_inters_col[0] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[0],0)
+            x_inters_col[1] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[1],0)
+            y_inters_col[0] = my_math.line(slope_col[0],x_inters_col[0],0)
+            y_inters_col[1] = my_math.line(slope_col[1],x_inters_col[1],0)
 
             if (j==0):
                 a_row[0] = 0   # this is reset later
@@ -118,43 +110,43 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
 
             if (j==0): # first row
                 if (i==0):  # first col
-                    x2 = intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
+                    x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                             b_col[1],a_col[1],r_const**2)
-                    y2 = ellipse(a_row[1],b_row[1],r_const**2,x2)
+                    y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
                     el.x = np.array([np.sum(dr_sq[:i]), np.sum(dr_sq[:i+1]), x2, np.sum(dr_sq[:i])])
                     el.y = np.array([np.sum(dr_sq[:j]), np.sum(dr_sq[:j]), y2, np.sum(dr_sq[:j+1])])
                 else:
-                    x2 = intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
+                    x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                             b_col[1],a_col[1],r_const**2)
-                    x3 = intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
+                    x3 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                             b_col[0],a_col[0],r_const**2)
-                    y2 = ellipse(a_row[1],b_row[1],r_const**2,x2)
-                    y3 = ellipse(a_row[1],b_row[1],r_const**2,x3)
+                    y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
+                    y3 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x3)
                     el.x = np.array([np.sum(dr_sq[:i]), np.sum(dr_sq[:i+1]), x2, x3])
                     el.y = np.array([np.sum(dr_sq[:j]), np.sum(dr_sq[:j]), y2, y3])
             elif (j>0 and i==0): # first col
-                x1 = intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
+                x1 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
                         b_col[1],a_col[1],r_const**2)
-                x2 = intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
+                x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                         b_col[1],a_col[1],r_const**2)
-                y1 = ellipse(a_row[0],b_row[0],r_const**2,x1)
-                y2 = ellipse(a_row[1],b_row[1],r_const**2,x2)
+                y1 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x1)
+                y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
                 el.x = np.array([np.sum(dr_sq[:i]), x1, x2, np.sum(dr_sq[:i])])
                 el.y = np.array([np.sum(dr_sq[:j]), y1, y2, np.sum(dr_sq[:j+1])])
             elif (i> 0 and j>0):    # inside
                 #find intersection between both ellipses
-                x0 = intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
+                x0 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
                         b_col[0],a_col[0],r_const**2)
-                x1 = intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
+                x1 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
                         b_col[1],a_col[1],r_const**2)
-                x2 = intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
+                x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                         b_col[1],a_col[1],r_const**2)
-                x3 = intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
+                x3 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                         b_col[0],a_col[0],r_const**2)
-                y0 = ellipse(a_row[0],b_row[0],r_const**2,x0)
-                y1 = ellipse(a_row[0],b_row[0],r_const**2,x1)
-                y2 = ellipse(a_row[1],b_row[1],r_const**2,x2)
-                y3 = ellipse(a_row[1],b_row[1],r_const**2,x3)
+                y0 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x0)
+                y1 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x1)
+                y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
+                y3 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x3)
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
             else:
@@ -175,8 +167,8 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
             #----------------------------------------------------------------------
             a_wall = 0.5    # semi-major axis at last layer (wall)
             
-            a_on[0] = geom_prog(nR-nSq+1, a_interface, a_wall, j)
-            a_on[1] = geom_prog(nR-nSq+1, a_interface, a_wall, j+1)
+            a_on[0] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j)
+            a_on[1] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j+1)
 
 #            dr = dr_on
 #            b_on[0] = (j+nSq)*dr
@@ -189,154 +181,24 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
             slope_on[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
             # of the element (upper part) or top side (lower part)
             if (i <= (nSq-1)):  # upper part, including border /
-                x0 = intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[1],0)
-                x1 = intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[0],0)
-                x2 = intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[0],0)
-                x3 = intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[1],0)
+                x0 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[1],0)
+                x1 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[0],0)
+                x2 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[0],0)
+                x3 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[1],0)
                 el.x = np.array([x0, x1, x2, x3])
-                el.y[0:2] = ellipse(a_on[0],b_on[0],r_const**2,el.x[0:2])
-                el.y[2:4] = ellipse(a_on[1],b_on[1],r_const**2,el.x[2:4])
+                el.y[0:2] = my_math.ellipse(a_on[0],b_on[0],r_const**2,el.x[0:2])
+                el.y[2:4] = my_math.ellipse(a_on[1],b_on[1],r_const**2,el.x[2:4])
             elif (i >= nSq):     # lower part, including border /
-                x0 = intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],0)
-                x1 = intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[0],0)
-                x2 = intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[1],0)
-                x3 = intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[1],0)
-                y0 = line(slope_on[0],x0,0)
-                y1 = line(slope_on[0],x1,0)
-                y2 = line(slope_on[1],x2,0)
-                y3 = line(slope_on[1],x3,0)
+                x0 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],0)
+                x1 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[0],0)
+                x2 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[1],0)
+                x3 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[1],0)
+                y0 = my_math.line(slope_on[0],x0,0)
+                y1 = my_math.line(slope_on[0],x1,0)
+                y2 = my_math.line(slope_on[1],x2,0)
+                y3 = my_math.line(slope_on[1],x3,0)
                 el.y = np.array([y0, y1, y2, y3])
                 el.x = np.array([x0, x1, x2, x3])
-
-
-#def lin_dist(N, a_start, a_end, j):
-#    """ Linear distribution 
-#
-#    N       : number of steps
-#    a_start : starting value at j=0
-#    a_end   : finale value at j=N
-#    j       : step
-#    """
-#
-#    if (a_start > a_end):
-#        ret = a_start - (a_start - a_end)/(N) * (j)
-#    else:
-#        ret = a_start + (a_end - a_start)/N * j
-#    return ret
-
-
-#def quad_dist(N, a_end, a_start, j):
-#    """ Quadratic distribution 
-#
-#    N       : number of steps
-#    a_start : starting value at j=0
-#    a_end   : finale value at j=N
-#    j       : step
-#    """
-#
-#    ret = (a_end-a_start)/(N**2) * (j-N)**2 + a_start
-#    return ret
-
-
-
-def geom_prog(N, a_start, a_end, j):
-    """ Geometric progression a(j) = a_start * r**j 
-
-    with a(0) = a_start 
-    and a(N) = a_start*r**(N-1) = a_end
-
-    N       : number of steps
-    a_start : starting value at j=0
-    a_end   : finale value at j=N-1
-    j       : step
-    """
-
-    r = (a_end/a_start)**(1/(N-1))
-    ret = a_start * r**j
-
-    return ret
-
-
-def ellipse(a,b,c,x):
-    """ Ellipse with x**2/a**2 + y**2/b**2 = c 
-    
-    a : semi-major axis
-    b : semi-minor axis
-    c : "radius" or constant on the rhs
-    x : dependent variable
-    """
-
-    ret = b*(c-x**2/a**2)**(0.5)
-    return ret
-
-
-def line(m,x,d):
-    """ Straight line with y = m*x + d 
-    
-    m : slope
-    d : y-intercept
-    """
-
-    ret = m*x+d
-    return ret
-
-
-def intersec_ellip_line(a,b,c,m,d):
-    """ Intersection between ellipse and straight line. 
-    
-    a : semi-major axis
-    b : semi-minor axis
-    c : "radius" or constant on the rhs 
-    m : slope of straight line
-    d : y-intercept of straight line
-    """
-
-    # x value from b(c-x**2/a**2)**(0.5) = m*x + d
-    A = 2*m*d/(m**2+b**2/a**2)
-    B = (d**2-b**2*c)/(m**2+b**2/a**2)
-    x = - A/2 + ( A**2/4 - B )**(0.5)
-    return x
-
-
-def intersec_ellip_ellip(a1,b1,rhs1,a2,b2,rhs2):
-    """ Intersection between two ellipses.
-
-    a1   : semi-major axis of ellipse 1
-    b1   : semi-minor axis of ellipse 1
-    rhs1 : constant on the rhs
-    a2   : semi-major axis of ellipse 2
-    b2   : semi-minor axis of ellipse 2
-    rhs2 : constant on the rhs
-
-    x**2/a**2 + y**2/b**2 = R**2
-    """
-
-    # x value from b1*(R1**2-x**2/a1**2)**0.5 = b2*(R2**2-x**2/a2**2)**0.5
-    x = ( ( b1**2*rhs1 - b2**2*rhs2 ) / ( (b1/a1)**2 - (b2/a2)**2 ) )**0.5
-#    pdb.set_trace()
-    return x
-
-def newton_raphson(x0, func, func_prime):
-    """ Newton-Raphson algorithm for determining zeros.
-
-    x0          : initial guess
-    func        : function
-    func_prime  : first derivative
-    """
-    delta = 1e3
-    eps = 1e-9
-    x_old = x0
-
-    while delta > eps:
-        x_new = x_old - func(x_old)/func_prime(x_old)
-        x_old = x_new
-        delta = abs(x_new-x_old)
-
-    return x_old
-
-
-
-
 
 
 def compl_mesh(elements, nR, nSq):
@@ -1405,21 +1267,12 @@ def check_mesh_quality(elements, nR, nSq):
             l_phi = np.array([ vec1_norm, vec3_norm ])
 
 
-            alpha_12 = vec_angle(-vec1, vec2)
-            alpha_23 = vec_angle(vec2, -vec3)
-            alpha_34 = vec_angle(-vec3, vec4)
-            alpha_41 = vec_angle(-vec4, vec1)
+            alpha_12 = my_math.vec_angle(-vec1, vec2)
+            alpha_23 = my_math.vec_angle(vec2, -vec3)
+            alpha_34 = my_math.vec_angle(-vec3, vec4)
+            alpha_41 = my_math.vec_angle(-vec4, vec1)
  
-#            alpha_12 = m.atan2(vec2[1], vec2[0]) - m.atan2(vec1[1], vec1[0])
-#            alpha_23 = m.atan2(vec3[1], vec3[0]) - m.atan2(vec2[1], vec2[0])
-#            alpha_34 = m.atan2(vec4[1], vec4[0]) - m.atan2(vec3[1], vec3[0])
-#            alpha_41 = m.atan2(vec1[1], vec1[0]) - m.atan2(vec4[1], vec4[0])
 
-#            alpha_12 = np.arccos(np.dot(vec1, vec2)/(vec1_norm*vec2_norm))
-#            alpha_23 = np.arccos(np.dot(vec2, vec3)/(vec2_norm*vec3_norm))
-#            alpha_34 = np.arccos(np.dot(vec3, vec4)/(vec3_norm*vec4_norm))
-#            alpha_41 = np.arccos(np.dot(vec4, vec1)/(vec4_norm*vec1_norm))
- 
             alpha = np.array([ alpha_12, alpha_23, alpha_34, alpha_41 ])
 #            print(alpha/m.pi*180, np.sum(alpha)/m.pi*180, n)
 
@@ -1462,24 +1315,6 @@ def check_mesh_quality(elements, nR, nSq):
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
 
-def vec_angle(vec1, vec2):
-    """ Return the angle between two vectors """
-
-    if (vec1[1] == -0.0):   # for elements in first row vec1[1] == -0.0
-        vec1[1] = 0.0
-
-    a1 = m.atan2(vec1[1],vec1[0])
-    a2 = m.atan2(vec2[1],vec2[0])
-
-    return m.fabs(a1-a2)
-#    if (a1*a2 >= 0 ): # both are positive or both negative
-#        return m.pi - (a2-a1)
-#    elif (a1 < 0 and a2 > 0):
-#        return m.pi - (a2-a1)
-#    elif (a2 < 0 and a1 > 0):
-#        return a1-a2
-#    else:
-#        print(a1, a2)
 
 
 

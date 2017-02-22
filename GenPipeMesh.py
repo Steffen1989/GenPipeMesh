@@ -13,6 +13,7 @@
 import nek_utils
 import numpy as np
 import math as m
+import my_math
 import elementclass 
 import pdb
 import sys
@@ -32,9 +33,12 @@ nSq = 4         # nel in square region along one side of the square
 #----------------------------------------------------------------------
 nPhi = nSq*8    # nel in circumferential direction
 dr = R/nR       # length of one element
+
 # Set distribution of elements in a certain way
+# OPEN
+#----------------------------------------------------------------------
 # "Square" region:
-dr_sq_ratio = 0.95   # minium to maximum element length
+dr_sq_ratio = 0.90   # minium to maximum element length
 fact_sq = dr_sq_ratio**(1/(nSq-1))
 fact_sq_sum = 0
 for i in range(0,nSq):
@@ -43,11 +47,14 @@ dr_sq_max = nSq*dr/fact_sq_sum
 dr_sq_min = dr_sq_max*dr_sq_ratio
 dr_sq = np.zeros(nSq)
 for i in range(0,nSq):
-    dr_sq[i] = nek_utils.geom_prog(nSq, dr_sq_max, dr_sq_min, i)
+    dr_sq[i] = my_math.geom_prog(nSq, dr_sq_max, dr_sq_min, i)
 
 # "Onion" region:
 # Use geometric progression for a small increase and then cosine for 
 # sharp decrease of element size
+#----------------------------------------------------------------------
+# NOTE: This needs some more work
+#----------------------------------------------------------------------
 n_on_1 = int(m.floor(1/2*(nR-nSq)))
 n_on_2 = (nR-nSq) - n_on_1
 dr_on_interface = dr_sq_min
@@ -84,60 +91,20 @@ def x_transition_prime(x):
     
 
 
-dr_on_transition = nek_utils.newton_raphson(dr,x_transition, x_transition_prime)
+dr_on_transition = my_math.newton_raphson(dr,x_transition, x_transition_prime)
 dr_on_1 = np.zeros(n_on_1)
 for i in range(0,n_on_1):
-    dr_on_1[i] = nek_utils.geom_prog(n_on_1,dr_on_interface, dr_on_transition, i)
+    dr_on_1[i] = my_math.geom_prog(n_on_1,dr_on_interface, dr_on_transition, i)
 dr_on_2 = np.zeros(n_on_2)
 for i in range(0,n_on_2):
     dr_on_2[i] = dr_on_transition*m.cos((i+1)/(n_on_2+1)*m.pi/2)
-print(dr_sq)
-print(dr_on_1, dr_on_2)
 dr_on = np.concatenate([dr_on_1, dr_on_2])
-print(dr_on)
-print(np.sum(dr_sq), np.sum(dr_on))
-print(np.sum(dr_sq)+np.sum(dr_on))
-
-
-
-
-
-## Use cosine function for small elements at the wall
-## rise at first and then decrease at the wall
-#dr_on = np.zeros(nR-nSq)
-#for i in range(0,nR-nSq):
-#    dr_on[i] = m.cos(i/(nR-nSq)*5*m.pi/8 - m.pi/8)*dr_sq_min/m.cos(m.pi/(8))
-#
-#dr_on = np.ones(4) * dr
-#
-#print(dr_sq)
-#print(dr_on)
+# END
+#----------------------------------------------------------------------
 
 n_tot = nR * nPhi   # total number of elements
 spatial_dim = 2     # spatial dimension
 
-#class Element:
-#    """ A class for 2d elements """
-#
-#    def __init__(self):
-#
-#        # element number
-#        self.number = 0
-#
-#        # vertices
-#        self.x = np.zeros(4)
-#        self.y = np.zeros(4)
-#        
-#        # position within quarter section
-#        self.pos = ''
-#
-#        # boundary conditions for each face
-#        # convention is [south, east, north, west]
-#        self.bc = []
-#
-#        # boundary condition parameters
-#        self.bc_con_f = []  # connected face: 1: south, 2:east, 3:north, 4:west
-#        self.bc_con_el = []  # number of the connected element
 
 el_list = []    # list of all elements
 number = 1
