@@ -1317,13 +1317,15 @@ def rea_skel():
     f.close()
 
 
-def check_mesh_quality(elements, nR, nSq):
+def check_mesh_quality(elements, nR, nSq, R):
     """ Find minimum and maximum radial and circumferential 
     element lengths and element angles (distortion from 90°).
     """
     
     # only check first quadrant
     nel_quarter = nSq**2 + (nR-nSq)*2*nSq       # number of elements in one quarter
+    nPhi = 8*nSq
+
     elements = elements[0:nel_quarter]
     l_r_max = 0
     l_r_min = 1e5
@@ -1395,6 +1397,7 @@ def check_mesh_quality(elements, nR, nSq):
     print('Some information about the mesh size:')
     print('Delta R max = {0:12.5f} at {2:d}\nDelta R min = {1:12.5f} at {3:d}'.format(l_r_max, l_r_min, el_r_max, el_r_min))
     print('Delta phi max = {0:10.5f} at {2:d}\nDelta phi min = {1:10.5f} at {3:d}'.format(l_p_max, l_p_min, el_p_max, el_p_min))
+    print('R*phi max = {0:10.5f}'.format(2*m.pi/nPhi*R))
     print('alpha max = {0:10.5f}° at {2:d}\nalpha min = {1:10.5f}° at {3:d}'.format(alph_max/m.pi*180, alph_min/m.pi*180, el_alph_max, el_alph_min))
     print('Note that curvature is not considered here!')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
