@@ -6,6 +6,80 @@ import math as m
 import my_math
 import elementclass
 
+def sq_dist(nSq, dr, dr_sq_ratio):
+    """ Set distribution of elements within the "square" region in 
+    radial direction in a certain way.
+    """
+
+    fact_sq = dr_sq_ratio**(1/(nSq-1))
+    fact_sq_sum = 0
+    for i in range(0,nSq):
+        fact_sq_sum = fact_sq_sum + fact_sq**i
+    dr_sq_max = nSq*dr/fact_sq_sum
+    dr_sq_min = dr_sq_max*dr_sq_ratio
+    dr_sq = np.zeros(nSq)
+    for i in range(0,nSq):
+        dr_sq[i] = my_math.geom_prog(nSq, dr_sq_max, dr_sq_min, i)
+    return dr_sq
+
+
+def on_dist(nR, nSq, dr, dr_sq):
+    """ Set distribution of elements in radial direction along axis 
+    within onion region in a certain way.
+    Use geometric progression for a small increase and then cosine for 
+    sharp decrease of element size
+    """
+    
+    #----------------------------------------------------------------------
+    # NOTE: This might need some tuning
+    #----------------------------------------------------------------------
+    n_on_1 = int(m.floor(1/2*(nR-nSq)))     # increasing region
+    if (n_on_1<2):  # needs to be at least 2
+        n_on_1 = 2
+    n_on_2 = (nR-nSq) - n_on_1              #decreasing region
+    dr_sq_min = min(dr_sq)
+    dr_on_interface = dr_sq_min
+    
+    def x_transition(x):
+        """ This function is defined by the requirement that the total length
+        of both onion regions needs to be (nR-nSq)*dr and we end up at r = R.
+        Note that the first element of the second region is not the same as 
+        the last of the first region, i.e. both regions "share" dr_transition.
+        """
+    
+        sum_cos = 0
+        for i in range(1,n_on_2+1):
+            sum_cos = sum_cos + m.cos(i/(n_on_2+1)*m.pi/2)
+        ret = -dr*(nR-nSq) + dr_sq_min * (1-(x/dr_sq_min)**(n_on_1/(n_on_1-1)))/\
+                (1-(x/dr_sq_min)**(1/(n_on_1-1))) + x*sum_cos
+        return ret
+    
+    def x_transition_prime(x):
+        """ First derivative of x_transition function
+        """
+    
+        sum_cos = 0
+        for i in range(1,n_on_2+1):
+            sum_cos = sum_cos + m.cos(i/(n_on_2+1)*m.pi/2)
+        ret = sum_cos + dr_sq_min * ( (-n_on_1/(n_on_1-1)*x**(n_on_1/(n_on_1-1)-1)*\
+                dr_sq_min**(n_on_1/(1-n_on_1))) * (1-(x/dr_sq_min)**(1/(n_on_1-1)))**(-1)+\
+                (1-(x/dr_sq_min)**(n_on_1/(n_on_1-1)))*(-1)*(1-(x/dr_sq_min)**(1/(n_on_1-1)))**(-2)*\
+                (-dr_sq_min**(1/(1-n_on_1))*1/(n_on_1-1)*x**(1/(n_on_1-1)-1)))
+        return ret
+    
+    # Find the size of the element in between the increasing and decreasing regions
+    # by the requirement that the total size of the onion region is still
+    # (nR-nSq)*dr by using newton raphson algorithm for finding roots.
+    dr_on_transition = my_math.newton_raphson(dr,x_transition, x_transition_prime)
+    dr_on_1 = np.zeros(n_on_1)  # size distribution in increasing region
+    for i in range(0,n_on_1):
+        dr_on_1[i] = my_math.geom_prog(n_on_1,dr_on_interface, dr_on_transition, i)
+    dr_on_2 = np.zeros(n_on_2)  # size distribution in decreasing region
+    for i in range(0,n_on_2):
+        dr_on_2[i] = dr_on_transition*m.cos((i+1)/(n_on_2+1)*m.pi/2)
+    dr_on = np.concatenate([dr_on_1, dr_on_2])
+
+    return dr_on
 
 def set_vertices(elements,nR,nSq,dr_sq, dr_on):
     """ Set vertex location for each element. 
