@@ -38,7 +38,7 @@ dr = R/nR       # length of one element
 # OPEN
 #----------------------------------------------------------------------
 # "Square" region:
-dr_sq_ratio = 0.90   # minium to maximum element length
+dr_sq_ratio = 0.95   # minium to maximum element length
 fact_sq = dr_sq_ratio**(1/(nSq-1))
 fact_sq_sum = 0
 for i in range(0,nSq):

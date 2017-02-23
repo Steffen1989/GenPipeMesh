@@ -60,7 +60,9 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
             # Option1: Drop by a certain percentage
 #            a_interface = x_interface*b_interface/( (r_const**2*b_interface**2-y_sq_interface**2)**0.5 )
             # Opiton2: Set corner angle = 120°
-            a_interface = b_interface/(m.tan(m.pi/12))**0.5
+#            a_interface = b_interface/(m.tan(m.pi/12))**0.5
+            # Option3: Set a = 0.5
+            a_interface = 0.5
 
             # Idea: define ellipses in the inner region such that they coincide with the 
             # element in the onion region.
@@ -167,8 +169,17 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
             #----------------------------------------------------------------------
             a_wall = 0.5    # semi-major axis at last layer (wall)
             
-            a_on[0] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j)
-            a_on[1] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j+1)
+            a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
+            a_on[1] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j+1)
+
+#            if (j < (nR-nSq-1)):
+#                a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
+#                a_on[1] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j+1)
+#
+#            else:   # last element has a=0.5 on both sides
+#                a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
+#                a_on[1] = a_on[0]
+
 
 #            dr = dr_on
 #            b_on[0] = (j+nSq)*dr
