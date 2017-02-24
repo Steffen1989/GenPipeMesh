@@ -23,22 +23,25 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-#nR = 16
 nR = 8 
 #nSq = 19
-nSq = 5         # nel in square region along one side of the square
+nSq = 4         # nel in square region along one side of the square
 #nSq = 8
+
+stretch_sq = 1.1    # stretch nominal value of dr in square by this factor
+dr_sq_ratio = 0.95   # min to max element length along axis in square
+dr_sq_int_ratio = 0.85    # ratio of min to max element x (resp. y) component
+# along intersection
+# Note that this is not the real length but its projection along x-, 
+# respective y-axis
+
+
 
 # Define some global variables here:
 #----------------------------------------------------------------------
-dr = R/nR       # length of one element
-dr_sq_ratio = 0.95   # min to max element length within square region
-# Set distribution of elements in radial direction along axis in a certain
-# way for square region
-dr_sq = nek_utils.sq_dist(nSq, dr, dr_sq_ratio)
-# Set distribution of lements in radial direction along axis in a certain 
-# way for onion region
-dr_on = nek_utils.on_dist(nR, nSq, dr, dr_sq)
+dr_nominal = R/nR       # nominal length of one element
+dr = dr_nominal
+
 
 el_list = []    # list of all elements
 number = 1
@@ -65,7 +68,8 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
 #----------------------------------------------------------------------
 ## A.1.1: Set vertex positions of elements
 #----------------------------------------------------------------------
-nek_utils.set_vertices(el_list,nR,nSq,dr_sq, dr_on)
+nek_utils.set_vertices(el_list, nR, nSq, dr, dr_sq_ratio,\
+        dr_sq_int_ratio, stretch_sq)
 
 ## A.1.2: Set boundary conditions for faces 
 #----------------------------------------------------------------------

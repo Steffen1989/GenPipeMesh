@@ -72,6 +72,17 @@ def line(m,x,d):
     ret = m*x+d
     return ret
 
+def get_line_params(pt1_x, pt1_y, pt2_x, pt2_y):
+    """ Find the slope and y-intercept for a line 
+    going through pt1 and pt2
+
+    y = m*x + c
+    """
+
+    m = (pt2_y - pt1_y)/(pt2_x - pt1_x)
+    c = pt1_y - m*pt1_x
+    return (m, c)
+
 
 def intersec_ellip_line(a,b,c,m,d):
     """ Intersection between ellipse and straight line. 

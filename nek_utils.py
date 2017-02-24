@@ -81,7 +81,9 @@ def on_dist(nR, nSq, dr, dr_sq):
 
     return dr_on
 
-def set_vertices(elements,nR,nSq,dr_sq, dr_on):
+
+
+def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq):
     """ Set vertex location for each element. 
 
     The vertices are set in a special way. For now the inner section, 
@@ -105,20 +107,36 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
     slope_on = np.zeros(2)     # slope of straight lines
     slope_row = np.zeros(2)
     slope_col = np.zeros(2)
+    y_interc = np.zeros(2)  # y interception of straight lines
     # intersection between straight lines and ellipses
     # at the last curve of square region
     x_inters_row = np.zeros(2)     
     x_inters_col = np.zeros(2)      
     y_inters_col = np.zeros(2)
     y_inters_row = np.zeros(2)
+    pt_wall_x = np.zeros(2)
+    pt_wall_y = np.zeros(2)
  
     for el in elements:
         if (el.number <= nSq**2):   
+
+            # Set distribution of elements in radial direction along axis in a certain
+            # way for square region
+            
+            dr_sq_nominal = dr*stretch_sq  # stretch el in square region
+            dr_sq = sq_dist(nSq, dr_sq_nominal, dr_sq_ratio)
+            # Set distribution of elements in radial direction along axis in a certain 
+            # way for onion region
+            dr_on_nominal = (dr*nR - dr_sq_nominal*nSq)/(nR-nSq)
+            dr_on = on_dist(nR, nSq, dr_on_nominal, dr_sq)
+
             # This is the inner, "square" section
             # OPEN square
             #--------------------------------------------------
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
+
+
 
             # Determine the semi-major axis for "square" section
             #----------------------------------------------------------------------
@@ -157,15 +175,35 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
             b_col[0] = np.sum(dr_sq[:i])    # small semi-minor axis  
             b_col[1] = np.sum(dr_sq[:i+1])   # large semi-minor axis
 
-            x_inters_row[0] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[0],0)
-            x_inters_row[1] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[1],0)
-            y_inters_row[0] = my_math.line(slope_row[0],x_inters_row[0],0)
-            y_inters_row[1] = my_math.line(slope_row[1],x_inters_row[1],0)
+#            x_inters_row[0] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[0],0)
+#            x_inters_row[1] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[1],0)
+#            y_inters_row[0] = my_math.line(slope_row[0],x_inters_row[0],0)
+#            y_inters_row[1] = my_math.line(slope_row[1],x_inters_row[1],0)
+#
+#            x_inters_col[0] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[0],0)
+#            x_inters_col[1] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[1],0)
+#            y_inters_col[0] = my_math.line(slope_col[0],x_inters_col[0],0)
+#            y_inters_col[1] = my_math.line(slope_col[1],x_inters_col[1],0)
 
-            x_inters_col[0] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[0],0)
-            x_inters_col[1] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[1],0)
-            y_inters_col[0] = my_math.line(slope_col[0],x_inters_col[0],0)
-            y_inters_col[1] = my_math.line(slope_col[1],x_inters_col[1],0)
+
+            # Alternative for distribution of points along intersection
+            dr_sq_inters_ratio = dr_sq_int_ratio
+            x_inters_corner = my_math.intersec_ellip_ellip(a_interface, b_interface, r_const**2,\
+                    b_interface, a_interface, r_const**2)
+            dr_sq_inters_nominal = x_inters_corner/nSq
+            x_inters_col_dist = sq_dist(nSq, dr_sq_inters_nominal, dr_sq_inters_ratio)
+            x_inters_col[0] = np.sum(x_inters_col_dist[:i])
+            x_inters_col[1] = np.sum(x_inters_col_dist[:i+1])
+            y_inters_col[0] = my_math.ellipse(a_interface, b_interface, r_const**2, x_inters_col[0])
+            y_inters_col[1] = my_math.ellipse(a_interface, b_interface, r_const**2, x_inters_col[1])
+
+            y_inters_row_dist = x_inters_col_dist
+            y_inters_row[0] = np.sum(y_inters_row_dist[:j])
+            y_inters_row[1] = np.sum(y_inters_row_dist[:j+1])
+            x_inters_row[0] = my_math.ellipse(a_interface, b_interface, r_const**2, y_inters_row[0])
+            x_inters_row[1] = my_math.ellipse(a_interface, b_interface, r_const**2, y_inters_row[1])
+
+
 
             if (j==0):
                 a_row[0] = 0   # this is reset later
@@ -243,6 +281,7 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
             #----------------------------------------------------------------------
             a_wall = 0.5    # semi-major axis at last layer (wall)
             
+            # Note that this is only relevant if a_interface and a_wall are different
             a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
             a_on[1] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j+1)
 
@@ -259,29 +298,83 @@ def set_vertices(elements,nR,nSq,dr_sq, dr_on):
 #            b_on[0] = (j+nSq)*dr
 #            b_on[1] = (j+1+nSq)*dr
 
+            # Semi minor-axis:
             b_on[0] = np.sum(dr_sq)+np.sum(dr_on[:j])
             b_on[1] = np.sum(dr_sq)+np.sum(dr_on[:j+1])
-            slope_on[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
-            # of the element (upper part) or bottom side (lower part)
-            slope_on[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
-            # of the element (upper part) or top side (lower part)
+
+            # Straight line defined by points on intersection square-onion and equidistantly
+            # spaced points along circumference
+            # OPEN
+            #------------------------------
+            pt_wall_x[0] = nR*dr*m.cos(m.pi/2*(k/ntheta))
+            pt_wall_y[0] = nR*dr*m.sin(m.pi/2*(k/ntheta))
+            pt_wall_x[1] = nR*dr*m.cos(m.pi/2*((k+1)/ntheta))
+            pt_wall_y[1] = nR*dr*m.sin(m.pi/2*((k+1)/ntheta))
+
+
+            dr_sq_inters_ratio = dr_sq_int_ratio
+            x_inters_corner = my_math.intersec_ellip_ellip(a_interface, b_interface, r_const**2,\
+                    b_interface, a_interface, r_const**2)
+            dr_sq_inters_nominal = x_inters_corner/nSq
+            x_inters_col_dist = sq_dist(nSq, dr_sq_inters_nominal, dr_sq_inters_ratio)
+            x_inters_col[0] = np.sum(x_inters_col_dist[:i])
+            x_inters_col[1] = np.sum(x_inters_col_dist[:i+1])
+            y_inters_col[0] = my_math.ellipse(a_interface, b_interface, r_const**2, x_inters_col[0])
+            y_inters_col[1] = my_math.ellipse(a_interface, b_interface, r_const**2, x_inters_col[1])
+
+            y_inters_row_dist = x_inters_col_dist
+            y_inters_row[0] = np.sum(y_inters_row_dist[:k])
+            y_inters_row[1] = np.sum(y_inters_row_dist[:k+1])
+            x_inters_row[0] = my_math.ellipse(a_interface, b_interface, r_const**2, y_inters_row[0])
+            x_inters_row[1] = my_math.ellipse(a_interface, b_interface, r_const**2, y_inters_row[1])
+
+            if (i<nSq):    # upper onion part
+                # slope of the straight line on the right side of the element
+                slope_on[0], y_interc[0] = my_math.get_line_params(pt_wall_x[0], pt_wall_y[0],\
+                        x_inters_col[1], y_inters_col[1])
+                # slope of the straight line on the left side of the element
+                slope_on[1], y_interc[1] = my_math.get_line_params(pt_wall_x[1], pt_wall_y[1],\
+                        x_inters_col[0], y_inters_col[0])
+            else:       # lower onion part
+                # slope of the straight line on the bottom side of the element
+                slope_on[0], y_interc[0] = my_math.get_line_params(pt_wall_x[0], pt_wall_y[0],\
+                        x_inters_row[0], y_inters_row[0])
+                # slope of the straight line on the top side of the element
+                slope_on[1], y_interc[1] = my_math.get_line_params(pt_wall_x[1], pt_wall_y[1],\
+                        x_inters_row[1], y_inters_row[1])
+
+            #------------------------------
+            # END 
+            # Definition of straight lines
+
+
+#            # Alternatively, define straight lines through the orign
+#            slope_on[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
+#            # of the element (upper part) or bottom side (lower part)
+#            slope_on[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
+#            # of the element (upper part) or top side (lower part)
+#            print('old slope:', slope_on, k)
+#
+#            y_interc[0] = 0
+#            y_interc[1] = 0
+
             if (i <= (nSq-1)):  # upper part, including border /
-                x0 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[1],0)
-                x1 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[0],0)
-                x2 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[0],0)
-                x3 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[1],0)
+                x0 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[1],y_interc[1])
+                x1 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[0],y_interc[0])
+                x2 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[0],y_interc[0])
+                x3 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[1],y_interc[1])
                 el.x = np.array([x0, x1, x2, x3])
                 el.y[0:2] = my_math.ellipse(a_on[0],b_on[0],r_const**2,el.x[0:2])
                 el.y[2:4] = my_math.ellipse(a_on[1],b_on[1],r_const**2,el.x[2:4])
             elif (i >= nSq):     # lower part, including border /
-                x0 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],0)
-                x1 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[0],0)
-                x2 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[1],0)
-                x3 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[1],0)
-                y0 = my_math.line(slope_on[0],x0,0)
-                y1 = my_math.line(slope_on[0],x1,0)
-                y2 = my_math.line(slope_on[1],x2,0)
-                y3 = my_math.line(slope_on[1],x3,0)
+                x0 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],y_interc[0])
+                x1 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[0],y_interc[0])
+                x2 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[1],y_interc[1])
+                x3 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[1],y_interc[1])
+                y0 = my_math.line(slope_on[0],x0,y_interc[0])
+                y1 = my_math.line(slope_on[0],x1,y_interc[0])
+                y2 = my_math.line(slope_on[1],x2,y_interc[1])
+                y3 = my_math.line(slope_on[1],x3,y_interc[1])
                 el.y = np.array([y0, y1, y2, y3])
                 el.x = np.array([x0, x1, x2, x3])
 
