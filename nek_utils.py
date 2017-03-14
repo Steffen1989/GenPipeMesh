@@ -172,8 +172,9 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
             b_row[0] = np.sum(dr_sq[:j])    # small semi-minor axis  
             b_row[1] = np.sum(dr_sq[:j+1])   # large semi-minor axis
-            b_col[0] = np.sum(dr_sq[:i])    # small semi-minor axis  
-            b_col[1] = np.sum(dr_sq[:i+1])   # large semi-minor axis
+            a_col[0] = np.sum(dr_sq[:i])    # small semi-major axis  
+            a_col[1] = np.sum(dr_sq[:i+1])   # large semi-major axis
+
 
 #            x_inters_row[0] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[0],0)
 #            x_inters_row[1] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[1],0)
@@ -213,36 +214,65 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 a_row[1] = x_inters_row[1]*b_row[1]/( (r_const**2*b_row[1]**2 - y_inters_row[1]**2)**0.5 )
 
             if (i==0):                # note that x and y need to be switched here
-                a_col[0] = 0   # this is reset later 
-                a_col[1] = y_inters_col[1]*b_col[1]/( (r_const**2*b_col[1]**2 - x_inters_col[1]**2)**0.5 )
+                b_col[0] = 0   # this is reset later 
+                b_col[1] = y_inters_col[1]*a_col[1]/( (r_const**2*a_col[1]**2 - x_inters_col[1]**2)**0.5 )
             else:
-                a_col[0] = y_inters_col[0]*b_col[0]/( (r_const**2*b_col[0]**2 - x_inters_col[0]**2)**0.5 )
-                a_col[1] = y_inters_col[1]*b_col[1]/( (r_const**2*b_col[1]**2 - x_inters_col[1]**2)**0.5 )
+                b_col[0] = y_inters_col[0]*a_col[0]/( (r_const**2*a_col[0]**2 - x_inters_col[0]**2)**0.5 )
+                b_col[1] = y_inters_col[1]*a_col[1]/( (r_const**2*a_col[1]**2 - x_inters_col[1]**2)**0.5 )
 
             # CLOSE def semi-major axis
             #--------------------------------------------------
 
             if (j==0): # first row
                 if (i==0):  # first col
+                    x0 = np.sum(dr_sq[:i])
+                    x1 = np.sum(dr_sq[:i+1])
                     x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
-                            b_col[1],a_col[1],r_const**2)
+                            a_col[1],b_col[1],r_const**2)
+                    x3 = np.sum(dr_sq[:i])
+
+                    y0 = np.sum(dr_sq[:j])
+                    y1 = np.sum(dr_sq[:j])
                     y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
-                    el.x = np.array([np.sum(dr_sq[:i]), np.sum(dr_sq[:i+1]), x2, np.sum(dr_sq[:i])])
-                    el.y = np.array([np.sum(dr_sq[:j]), np.sum(dr_sq[:j]), y2, np.sum(dr_sq[:j+1])])
+                    y3 = np.sum(dr_sq[:j+1])
+                    
+                    # use the midpoint between two vertices to calculate the curvature 
+                    c0 = 0
+                    c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const**2, (x1+x2)/2)
+                    c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3/2))
+                    c3 = 0
+
+                    el.x = np.array([x0, x1, x2, x3])
+                    el.y = np.array([y0, y1, y2, y3])
+                    el.c = np.array([c0, c1, c2, c3])
                 else:
+                    x0 = np.sum(dr_sq[:i])
+                    x1 = np.sum(dr_sq[:i+1])
                     x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
-                            b_col[1],a_col[1],r_const**2)
+                            a_col[1],b_col[1],r_const**2)
                     x3 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
-                            b_col[0],a_col[0],r_const**2)
+                            a_col[0],b_col[0],r_const**2)
+
+                    y0 = np.sum(dr_sq[:j])
+                    y1 = np.sum(dr_sq[:j])
                     y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
                     y3 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x3)
-                    el.x = np.array([np.sum(dr_sq[:i]), np.sum(dr_sq[:i+1]), x2, x3])
-                    el.y = np.array([np.sum(dr_sq[:j]), np.sum(dr_sq[:j]), y2, y3])
+
+                    c0 = 0
+                    c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const**2, (x1+x2)/2)
+                    c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3)/2)
+                    pdb.set_trace()
+                    c3 = my_math.get_rad_ell(a_col[0],b_col[0],r_const**2, (x0+x3)/2)
+
+                    el.x = np.array([x0, x1, x2, x3])
+                    el.y = np.array([y0, y1, y2, y3])
+                    el.c = np.array([c0, c1, c2, c3])
+
             elif (j>0 and i==0): # first col
                 x1 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
-                        b_col[1],a_col[1],r_const**2)
+                        a_col[1],b_col[1],r_const**2)
                 x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
-                        b_col[1],a_col[1],r_const**2)
+                        a_col[1],b_col[1],r_const**2)
                 y1 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x1)
                 y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
                 el.x = np.array([np.sum(dr_sq[:i]), x1, x2, np.sum(dr_sq[:i])])
@@ -250,13 +280,13 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             elif (i> 0 and j>0):    # inside
                 #find intersection between both ellipses
                 x0 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
-                        b_col[0],a_col[0],r_const**2)
+                        a_col[0],b_col[0],r_const**2)
                 x1 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
-                        b_col[1],a_col[1],r_const**2)
+                        a_col[1],b_col[1],r_const**2)
                 x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
-                        b_col[1],a_col[1],r_const**2)
+                        a_col[1],b_col[1],r_const**2)
                 x3 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
-                        b_col[0],a_col[0],r_const**2)
+                        a_col[0],b_col[0],r_const**2)
                 y0 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x0)
                 y1 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x1)
                 y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
@@ -413,6 +443,9 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
+        # Curvature
+        mirr_el.c = np.zeros(4)
+
         # Add mirrored element to the list of elements
         el_list_2nd.append(mirr_el)
 
@@ -441,7 +474,9 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
-        
+         # Curvature
+        mirr_el.c = np.zeros(4)
+       
         # Add mirrored element to the list of elements
         el_list_3rd.append(mirr_el)
 
@@ -470,7 +505,9 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
-        
+         # Curvature
+        mirr_el.c = np.zeros(4)
+       
         # Add mirrored element to the list of elements
         el_list_4th.append(mirr_el)
 
@@ -1190,6 +1227,41 @@ def write_mesh(elements):
     f.write(contents)
     f.close()
 
+def write_curv(elements):
+    """ Write curvature information to rea file. """
+
+    curv = []
+    n_tot = len(elements)
+    curv.append('{0:10d} Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n'.format(n_tot))
+    dig_n_tot = len(str(elements[-1].number))   # size of element number
+    for el in elements:
+        for f in range(4):
+#            curv.append('{0:10d} {1:6d} {2:10.6f} \
+#                    {3:10.6f} {4:10.6f} {5:10.6f} {6:10.6f} {7:10.6} {8:1s} {9:s}'\
+#            .format(f, el.number, el.curv, 0.0, 0.0, 0.0, 0.0, 0.0, 'C')
+            curv.append('{iedge:2d} {current_el:{digits_n_tot}d}{curve1:10.5f}\
+{curve2:10.5f}{curve3:10.5f}{curve4:10.5f}{curve5:10.5f}{newline:s}'\
+            .format(iedge=f+1, current_el=el.number, digits_n_tot=dig_n_tot,\
+            curve1=el.c[f],curve2=0.0,curve3=0.0,curve4=0.0,curve5=0.0,\
+            newline='\n'))
+
+    f = open('base.rea','r')
+    contents = f.readlines()
+    f.close()
+ 
+    # find row for curv data
+    line_curv = 0
+    while (not 'CURVED SIDE DATA' in contents[line_curv]):
+        line_curv = line_curv + 1
+ 
+    # and write it to rea file
+    contents[line_curv+1:line_curv+1] = curv
+    contents = "".join(contents)
+    f = open('base.rea','w')
+    f.write(contents)
+    f.close()
+
+
 def write_bc(elements, nR, nSq):
     """ Write boundary conditions to rea file. """
 
@@ -1370,7 +1442,7 @@ def rea_skel():
     f.write('   2.00000       2.00000      -1.00000      -1.00000     XFAC,YFAC,XZERO,YZERO\n')
     f.write('  ***** MESH DATA *****  6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8\n')
     f.write(' ***** CURVED SIDE DATA *****\n')
-    f.write('       0 Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n')
+#    f.write('       0 Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n')
     f.write('  ***** BOUNDARY CONDITIONS *****\n')
     f.write('  ***** FLUID BOUNDARY CONDITIONS *****\n')
     f.write('   ***** NO THERMAL BOUNDARY CONDITIONS *****\n')

@@ -149,3 +149,19 @@ def vec_angle(vec1, vec2):
 
     return m.fabs(a1-a2)
 
+def get_rad_ell(a, b, c, x):
+    """ Calculate the curvature at x with the formula
+    kappa = y'' / (1+y'**2)**(3/2)
+    and return its inverse the radius
+
+    a : semi-major axis
+    b : semi-minor axis
+    c : "radius" or constant on the rhs
+    x : dependent variable
+    """
+
+    y_pr = -b*x/a**2 * (c-x**2/a**2)**(-1/2)
+    y_prpr = -b*x**2/a**4 * (c-x**2/a**2)**(-3/2) \
+            - b/a**2 * (c-x**2/a**2)**(-1/2)
+    kappa = abs(y_prpr)/(1+y_pr**2)**(3/2)
+    return 1/kappa

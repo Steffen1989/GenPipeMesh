@@ -25,3 +25,7 @@ class Element:
         self.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
         self.bc_con_el = np.zeros(4)  # number of the connected element
 
+        # curvature
+        self.c = np.zeros(4) # curvature information 1: south, 2:east, 3:north, 4:west
+
+

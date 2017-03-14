@@ -50,6 +50,7 @@ for i in range(nSq):
     for j in range(nSq):
         el = elementclass.Element()
         el.number = number
+        el.c = np.zeros(4)
         el_list.append(el)
         number = number + 1
 # Populate list of elements: second, the curved region outside (onion region)
@@ -57,6 +58,7 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
     for j in range(nSq*2): # loop in clockwise direction through each layer
         el = elementclass.Element()
         el.number = number
+        el.c = np.zeros(4)
         el_list.append(el)
         number = number + 1
 
@@ -75,18 +77,13 @@ nek_utils.set_vertices(el_list, nR, nSq, dr, dr_sq_ratio,\
 #----------------------------------------------------------------------
 nek_utils.set_bc_q1(el_list,nR,nSq)
 
-## A.1.3: Set curved edges
-#----------------------------------------------------------------------
-
 
 ## A.2: Generate the complete mesh 
 #----------------------------------------------------------------------
 ## A.2.1: Set vertex positions
 #----------------------------------------------------------------------
 nek_utils.compl_mesh(el_list,nR,nSq)
-## A.2.2: Set curved edges
-#----------------------------------------------------------------------
-## A.2.3: Set boundary conditions
+## A.2.2: Set boundary conditions
 #----------------------------------------------------------------------
 nek_utils.set_bc_q2(el_list,nR,nSq)
 nek_utils.set_bc_q3(el_list,nR,nSq)
@@ -105,6 +102,7 @@ nek_utils.write_mesh(el_list)
 
 ## B.2: Write curved edges
 #----------------------------------------------------------------------
+nek_utils.write_curv(el_list)
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
 nek_utils.write_bc(el_list, nR, nSq)
