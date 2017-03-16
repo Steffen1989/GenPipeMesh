@@ -261,7 +261,6 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                     c0 = 0
                     c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const**2, (x1+x2)/2)
                     c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3)/2)
-                    pdb.set_trace()
                     c3 = my_math.get_rad_ell(a_col[0],b_col[0],r_const**2, (x0+x3)/2)
 
                     el.x = np.array([x0, x1, x2, x3])
@@ -269,14 +268,26 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                     el.c = np.array([c0, c1, c2, c3])
 
             elif (j>0 and i==0): # first col
+                x0 = np.sum(dr_sq[:i])
                 x1 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
                         a_col[1],b_col[1],r_const**2)
                 x2 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                         a_col[1],b_col[1],r_const**2)
+                x3 = np.sum(dr_sq[:i])
+
+                y0 = np.sum(dr_sq[:j])    
                 y1 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x1)
                 y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
-                el.x = np.array([np.sum(dr_sq[:i]), x1, x2, np.sum(dr_sq[:i])])
-                el.y = np.array([np.sum(dr_sq[:j]), y1, y2, np.sum(dr_sq[:j+1])])
+                y3 = np.sum(dr_sq[:j+1])
+
+                c0 = my_math.get_rad_ell(a_row[0],b_row[0],r_const**2, (x0+x1)/2)
+                c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const**2, (x1+x2)/2)
+                c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3)/2)
+                c3 = 0
+
+                el.x = np.array([x0, x1, x2, x3])
+                el.y = np.array([y0, y1, y2, y3])
+                el.c = np.array([c0, c1, c2, c3])
             elif (i> 0 and j>0):    # inside
                 #find intersection between both ellipses
                 x0 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
@@ -287,12 +298,20 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                         a_col[1],b_col[1],r_const**2)
                 x3 = my_math.intersec_ellip_ellip(a_row[1],b_row[1],r_const**2,\
                         a_col[0],b_col[0],r_const**2)
+
                 y0 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x0)
                 y1 = my_math.ellipse(a_row[0],b_row[0],r_const**2,x1)
                 y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
                 y3 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x3)
+
+                c0 = my_math.get_rad_ell(a_row[0],b_row[0],r_const*+2, (x0+x1)/2)
+                c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const*+2, (x1+x2)/2)
+                c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const*+2, (x2+x3)/2)
+                c3 = my_math.get_rad_ell(a_col[0],b_col[0],r_const*+2, (x0+x3)/2)
+
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
+                el.c = np.array([c0, c1, c2, c3])
             else:
                 sys.exit(1)
             #---------------------------------------------------
