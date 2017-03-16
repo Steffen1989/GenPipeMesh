@@ -48,6 +48,21 @@ def geom_prog(N, a_start, a_end, j):
 
     return ret
 
+def sin_dist(N, start, end, i):
+    """ Sine distribution with a clustering at the end
+
+    N       : number of steps
+    start   : starting value at i=0
+    end     : final value at i=N-1
+
+    """
+    if (end > start):   # swap
+        start, end = end, start
+    
+    r = start - (start-end)*m.sin(m.pi/2*i/(N-1))
+
+    return r
+
 
 def ellipse(a,b,c,x):
     """ Ellipse with x**2/a**2 + y**2/b**2 = c 
@@ -127,7 +142,7 @@ def newton_raphson(x0, func, func_prime):
     func_prime  : first derivative
     """
     delta = 1e3
-    eps = 1e-9
+    eps = 1e-12
     x_old = x0
 
     while delta > eps:

@@ -23,7 +23,7 @@ def sq_dist(nSq, dr, dr_sq_ratio):
     return dr_sq
 
 
-def on_dist(nR, nSq, dr, dr_sq):
+def on_dist(nR, nSq, dr, dr_sq, distri_on):
     """ Set distribution of elements in radial direction along axis 
     within onion region in a certain way.
     Use geometric progression for a small increase and then cosine for 
@@ -33,7 +33,7 @@ def on_dist(nR, nSq, dr, dr_sq):
     #----------------------------------------------------------------------
     # NOTE: This might need some tuning
     #----------------------------------------------------------------------
-    n_on_1 = int(m.floor(1/2*(nR-nSq)))     # increasing region
+    n_on_1 = int(m.floor(distri_on*(nR-nSq)))     # increasing region
     if (n_on_1<2):  # needs to be at least 2
         n_on_1 = 2
     n_on_2 = (nR-nSq) - n_on_1              #decreasing region
@@ -79,11 +79,25 @@ def on_dist(nR, nSq, dr, dr_sq):
         dr_on_2[i] = dr_on_transition*m.cos((i+1)/(n_on_2+1)*m.pi/2)
     dr_on = np.concatenate([dr_on_1, dr_on_2])
 
+    # make sure that last element is exactly at R and not only close because
+    # of rounding errors
+    desired_radius = np.sum(dr_sq)+dr*(nR-nSq)
+    actual_radius = np.sum(dr_sq)+np.sum(dr_on)
+    if (abs(desired_radius - actual_radius)>0.1):
+        print('WARNING: desired radius is {0:10.5f}, but actual radius is {1:10.5f}'\
+                .format(desired_radius, actual_radius))
+        sys.exit(1)
+    else:
+        # adjust last element's size
+        dr_last = desired_radius - (np.sum(dr_sq[:])+np.sum(dr_on[:-1]))
+    dr_on[-1] = dr_last
+
     return dr_on
 
 
 
-def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq):
+def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq, distri_on,
+        a_interf):
     """ Set vertex location for each element. 
 
     The vertices are set in a special way. For now the inner section, 
@@ -128,7 +142,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             # Set distribution of elements in radial direction along axis in a certain 
             # way for onion region
             dr_on_nominal = (dr*nR - dr_sq_nominal*nSq)/(nR-nSq)
-            dr_on = on_dist(nR, nSq, dr_on_nominal, dr_sq)
+            dr_on = on_dist(nR, nSq, dr_on_nominal, dr_sq, distri_on)
 
             # This is the inner, "square" section
             # OPEN square
@@ -150,11 +164,11 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             y_sq_interface = x_interface*drop
 
             # Option1: Drop by a certain percentage
-#            a_interface = x_interface*b_interface/( (r_const**2*b_interface**2-y_sq_interface**2)**0.5 )
+#           a_interface = x_interface*b_interface/( (r_const**2*b_interface**2-y_sq_interface**2)**0.5 )
             # Opiton2: Set corner angle = 120°
-#            a_interface = b_interface/(m.tan(m.pi/12))**0.5
+#           a_interface = b_interface/(m.tan(m.pi/12))**0.5
             # Option3: Set a = 0.5
-            a_interface = 0.5
+            a_interface = a_interf
 
             # Idea: define ellipses in the inner region such that they coincide with the 
             # element in the onion region.
@@ -330,10 +344,6 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             #----------------------------------------------------------------------
             a_wall = 0.5    # semi-major axis at last layer (wall)
             
-            # Note that this is only relevant if a_interface and a_wall are different
-            a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
-            a_on[1] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j+1)
-
 #            if (j < (nR-nSq-1)):
 #                a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
 #                a_on[1] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j+1)
@@ -350,6 +360,27 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             # Semi minor-axis:
             b_on[0] = np.sum(dr_sq)+np.sum(dr_on[:j])
             b_on[1] = np.sum(dr_sq)+np.sum(dr_on[:j+1])
+
+            # Set semi-major axis decreasing for the interface value the the last value
+            # of semi-minor axis before the wall and finally to a_wall.
+            # This ensures that the outermost onion layer has a constant radial size.
+            b_last = np.sum(dr_sq)+np.sum(dr_on[:-1])
+            a_on[0] = my_math.sin_dist(nR-nSq, a_interface, b_last, j)
+            a_on[1] = my_math.sin_dist(nR-nSq, a_interface, b_last, j+1)
+            if (j == nR-nSq-1): # we are in the outermost layer
+                a_on[0] = b_last
+                a_on[1] = a_wall
+
+#            a_on[0] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j)
+#            a_on[1] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j+1)
+
+#            a_on[0] = my_math.sin_dist(nR-nSq+1, a_interface, a_wall, j)
+#            a_on[1] = my_math.sin_dist(nR-nSq+1, a_interface, a_wall, j+1)
+
+
+
+
+            print(el.number, a_on, b_on)
 
             # Straight line defined by points on intersection square-onion and equidistantly
             # spaced points along circumference
@@ -412,20 +443,39 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 x1 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[0],y_interc[0])
                 x2 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[0],y_interc[0])
                 x3 = my_math.intersec_ellip_line(a_on[1],b_on[1],r_const**2,slope_on[1],y_interc[1])
+
+                y0 = my_math.ellipse(a_on[0],b_on[0],r_const**2,x0)
+                y1 = my_math.ellipse(a_on[0],b_on[0],r_const**2,x1)
+                y2 = my_math.ellipse(a_on[1],b_on[1],r_const**2,x2)
+                y3 = my_math.ellipse(a_on[1],b_on[1],r_const**2,x3)
+
+                c0 = my_math.get_rad_ell(a_on[0],b_on[0],r_const*+2, (x0+x1)/2)
+                c1 = 0
+                c2 = my_math.get_rad_ell(a_on[1],b_on[1],r_const*+2, (x2+x3)/2)
+                c3 = 0
+
                 el.x = np.array([x0, x1, x2, x3])
-                el.y[0:2] = my_math.ellipse(a_on[0],b_on[0],r_const**2,el.x[0:2])
-                el.y[2:4] = my_math.ellipse(a_on[1],b_on[1],r_const**2,el.x[2:4])
+                el.y = np.array([y0, y1, y2, y3])
+                el.c = np.array([c0, c1, c2, c3])
             elif (i >= nSq):     # lower part, including border /
                 x0 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],y_interc[0])
                 x1 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[0],y_interc[0])
                 x2 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[1],y_interc[1])
                 x3 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[1],y_interc[1])
+
                 y0 = my_math.line(slope_on[0],x0,y_interc[0])
                 y1 = my_math.line(slope_on[0],x1,y_interc[0])
                 y2 = my_math.line(slope_on[1],x2,y_interc[1])
                 y3 = my_math.line(slope_on[1],x3,y_interc[1])
+                
+                c0 = 0
+                c1 = my_math.get_rad_ell(a_on[1],b_on[1],r_const*+2, (x1+x2)/2)
+                c2 = 0
+                c3 = my_math.get_rad_ell(a_on[0],b_on[0],r_const*+2, (x0+x3)/2)
+
                 el.y = np.array([y0, y1, y2, y3])
                 el.x = np.array([x0, x1, x2, x3])
+                el.c = np.array([c0, c1, c2, c3])
 
 
 def compl_mesh(elements, nR, nSq):
@@ -463,7 +513,7 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
         # Curvature
-        mirr_el.c = np.zeros(4)
+        mirr_el.c = np.array([el.c[0],el.c[3],el.c[2],el.c[1]])
 
         # Add mirrored element to the list of elements
         el_list_2nd.append(mirr_el)
@@ -494,7 +544,7 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
          # Curvature
-        mirr_el.c = np.zeros(4)
+        mirr_el.c = np.array([el.c[2], el.c[3], el.c[0], el.c[1]])
        
         # Add mirrored element to the list of elements
         el_list_3rd.append(mirr_el)
@@ -525,7 +575,7 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
          # Curvature
-        mirr_el.c = np.zeros(4)
+        mirr_el.c = np.array([el.c[2], el.c[1], el.c[0], el.c[3]])
        
         # Add mirrored element to the list of elements
         el_list_4th.append(mirr_el)
@@ -1251,7 +1301,7 @@ def write_curv(elements):
 
     curv = []
     n_tot = len(elements)
-    curv.append('{0:10d} Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n'.format(n_tot))
+    curv.append('{0:10d} Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n'.format(n_tot*4))
     dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
         for f in range(4):
