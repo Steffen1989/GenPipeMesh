@@ -21,11 +21,12 @@ import re
 
 # Input Variables
 #----------------------------------------------------------------------
+
 R = 0.5         # radius
-nR = 28         # nel in radial direction
-#nR = 8 
-nSq = 19
-#nSq = 4         # nel in square region along one side of the square
+#nR = 28         # nel in radial direction
+nR = 8 
+#nSq = 19
+nSq = 4         # nel in square region along one side of the square
 #nSq = 8
 
 
@@ -36,14 +37,16 @@ nSq = 19
 stretch_sq = 1.05    
 # Min to max element length along axis in square
 dr_sq_ratio = 0.95  
+
 # Ratio of min to max element x (resp. y) component along intersection
 # Note that this is not the real length but its projection along x-, 
 # respective y-axis
 dr_sq_int_ratio = 0.9    
 # First xx in onion region is increasing and (xx-1) is decreasing
 distri_on = 0.5     
+
 # Semi-major axis at the interface betwenn square and onion region
-# Note: semi-minor axis is defined by postion of element along y-axis
+# Note: semi-minor axis is defined by position of element along y-axis
 a_interf = 0.57
 
 
@@ -51,7 +54,6 @@ a_interf = 0.57
 #----------------------------------------------------------------------
 dr_nominal = R/nR       # nominal length of one element
 dr = dr_nominal
-
 
 el_list = []    # list of all elements
 number = 1
@@ -73,12 +75,12 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
         number = number + 1
 
 
-
 ## A: Generate the mesh
 #----------------------------------------------------------------------
 ## A.1: Generate the mesh for a quarter section
 #----------------------------------------------------------------------
 ## A.1.1: Set vertex positions of elements
+# (This is the essential part of the code)
 #----------------------------------------------------------------------
 nek_utils.set_vertices(el_list, nR, nSq, dr, dr_sq_ratio,\
         dr_sq_int_ratio, stretch_sq, distri_on, a_interf)
@@ -94,6 +96,7 @@ nek_utils.set_bc_q1(el_list,nR,nSq)
 #----------------------------------------------------------------------
 nek_utils.compl_mesh(el_list,nR,nSq)
 ## A.2.2: Set boundary conditions
+# (for each quarter separately)
 #----------------------------------------------------------------------
 nek_utils.set_bc_q2(el_list,nR,nSq)
 nek_utils.set_bc_q3(el_list,nR,nSq)
@@ -105,11 +108,9 @@ nek_utils.set_bc_q4(el_list,nR,nSq)
 # generate a rea skeleton file
 #----------------------------------------------------------------------
 nek_utils.rea_skel()
-
 ## B.1: Write vertex positions
 #----------------------------------------------------------------------
 nek_utils.write_mesh(el_list)
-
 ## B.2: Write curved edges
 #----------------------------------------------------------------------
 nek_utils.write_curv(el_list)
@@ -120,8 +121,3 @@ nek_utils.write_bc(el_list, nR, nSq)
 ## C: Do some checks
 #----------------------------------------------------------------------
 nek_utils.check_mesh_quality(el_list, nR, nSq, R)
-
-
-
-
-

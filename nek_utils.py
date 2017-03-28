@@ -1,4 +1,10 @@
-# A collection of important functions
+## A collection of important functions
+#----------------------------------------------------------------------
+# The idea is to collect all tasks in separate (small) functions to
+# clearly arange the code. 
+
+## Import modules
+#----------------------------------------------------------------------
 import sys
 import pdb
 import numpy as np
@@ -6,9 +12,16 @@ import math as m
 import my_math
 import elementclass
 
+## Function definitions:
+#----------------------------------------------------------------------
+
+# Distribution of points:
+#----------------------------------------------------------------------
+# Necessary for setting the vertex positions
 def sq_dist(nSq, dr, dr_sq_ratio):
     """ Set distribution of elements within the "square" region in 
     radial direction in a certain way.
+    Use geometric progression.
     """
 
     fact_sq = dr_sq_ratio**(1/(nSq-1))
@@ -27,12 +40,9 @@ def on_dist(nR, nSq, dr, dr_sq, distri_on):
     """ Set distribution of elements in radial direction along axis 
     within onion region in a certain way.
     Use geometric progression for a small increase and then cosine for 
-    sharp decrease of element size
+    sharp decrease of element size.
     """
     
-    #----------------------------------------------------------------------
-    # NOTE: This might need some tuning
-    #----------------------------------------------------------------------
     n_on_1 = int(m.floor(distri_on*(nR-nSq)))     # increasing region
     if (n_on_1<2):  # needs to be at least 2
         n_on_1 = 2
@@ -40,6 +50,11 @@ def on_dist(nR, nSq, dr, dr_sq, distri_on):
     dr_sq_min = min(dr_sq)
     dr_on_interface = dr_sq_min
     
+    # The critical part here is to use geometric progression first and 
+    # cosine distribution afterwards. However, the overall length needs 
+    # to be the same as with the nominal values (nR-nSq)*dr.
+    # In order to fulfill this condition, the following two functions 
+    # are needed.
     def x_transition(x):
         """ This function is defined by the requirement that the total length
         of both onion regions needs to be (nR-nSq)*dr and we end up at r = R.
@@ -95,131 +110,111 @@ def on_dist(nR, nSq, dr, dr_sq, distri_on):
     return dr_on
 
 
-
+# MAJOR FUNCTION for setting the vertex positions:
+#----------------------------------------------------------------------
 def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq, distri_on,
         a_interf):
     """ Set vertex location for each element. 
 
-    The vertices are set in a special way. For now the inner section, 
-    called square section, is just a regular square. The outer part, 
-    called onion region, is built up by ellipses and straight lines.
-    The semi-major axis a is decreasing each layer outwards so that a=1
-    in the outermost layer which gives a circle. The constant on the right
-    hand side is kept constant and semi-minor and semi-major axis are
-    varied.
+    The vertices are set in a special way. 
+    The inner section, called "square" section is put together by 
+    ellipses and straight lines as a modification of just a simple regular
+    mesh consisting of squares. 
+    The outer part, called "onion" region, is built up by ellipses and
+    straight lines, too.
+    In the upper onion region, the semi-major axis a is decreasing each 
+    layer outwards so that a=1 in the outermost layer which gives a circle. 
+    The constant on the right hand side is kept constant and semi-minor 
+    and semi-major axis are varied.
     """
     
     # Variable definitions
     ntheta = nSq*2  # number of elements in one onion layer
     r_const = 1         # constant in ellipses
-    a_on = np.zeros(2)    # semi-major axis
-    a_row = np.zeros(2)    
-    a_col = np.zeros(2)
-    b_on = np.zeros(2)    # semi-minor axis
-    b_row = np.zeros(2)    
-    b_col = np.zeros(2)
-    slope_on = np.zeros(2)     # slope of straight lines
-    slope_row = np.zeros(2)
-    slope_col = np.zeros(2)
-    y_interc = np.zeros(2)  # y interception of straight lines
-    # intersection between straight lines and ellipses
-    # at the last curve of square region
+    a_on = np.zeros(2)    # semi-major axis in onion region
+    a_row = np.zeros(2)   # semi-maj. ax. in sq. along rows 
+    a_col = np.zeros(2)   # semi-maj. ax. in sq. along colums
+    b_on = np.zeros(2)    # semi-minor axis in onion region
+    b_row = np.zeros(2)   # semi-min. ax. in sq. along row
+    b_col = np.zeros(2)   # semi-min. ax. in sq. along col
+    slope_on = np.zeros(2)     # slope of straight lines in onion region
+    slope_row = np.zeros(2)    # slope on east and west faces
+    slope_col = np.zeros(2)    # slope on south and north faces
+    y_interc = np.zeros(2)  # y interception of straight lines 
+    # in onion region
+    
+    # Intersection between straight lines and ellipses
+    # at the interface between sq. and onion region.
+    # Row: east and west faces
+    # Col: south and north faces
     x_inters_row = np.zeros(2)     
     x_inters_col = np.zeros(2)      
     y_inters_col = np.zeros(2)
     y_inters_row = np.zeros(2)
+
+    # pts along wall of the pipe
     pt_wall_x = np.zeros(2)
     pt_wall_y = np.zeros(2)
  
     for el in elements:
+
+        # Set distribution of elements in radial direction along axis in a certain
+        # way for square region
+        dr_sq_nominal = dr*stretch_sq  # stretch el in square region
+        dr_sq = sq_dist(nSq, dr_sq_nominal, dr_sq_ratio)
+        # Set distribution of elements in radial direction along axis in a certain 
+        # way for onion region
+        dr_on_nominal = (dr*nR - dr_sq_nominal*nSq)/(nR-nSq)
+        dr_on = on_dist(nR, nSq, dr_on_nominal, dr_sq, distri_on)
+
         if (el.number <= nSq**2):   
-
-            # Set distribution of elements in radial direction along axis in a certain
-            # way for square region
-            
-            dr_sq_nominal = dr*stretch_sq  # stretch el in square region
-            dr_sq = sq_dist(nSq, dr_sq_nominal, dr_sq_ratio)
-            # Set distribution of elements in radial direction along axis in a certain 
-            # way for onion region
-            dr_on_nominal = (dr*nR - dr_sq_nominal*nSq)/(nR-nSq)
-            dr_on = on_dist(nR, nSq, dr_on_nominal, dr_sq, distri_on)
-
             # This is the inner, "square" section
             # OPEN square
             #--------------------------------------------------
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
 
-
-
-            # Determine the semi-major axis for "square" section
+            # Determine the semi-major axis for interface between "square" 
+            # and onion section
             #----------------------------------------------------------------------
-            # determine the minimum semi-major axis at the edge to the onion region
-            drop = 0.75         # max drop in percent compared to all squares
-            n_ellip_sq = nSq  # number of ellipses
-            x_interface = np.sum(dr_sq)
-#            x_interface = nSq*dr_sq
-
-            b_interface = x_interface # semi-minor axis
-            y_sq_interface = x_interface*drop
-
-            # Option1: Drop by a certain percentage
-#           a_interface = x_interface*b_interface/( (r_const**2*b_interface**2-y_sq_interface**2)**0.5 )
-            # Opiton2: Set corner angle = 120°
-#           a_interface = b_interface/(m.tan(m.pi/12))**0.5
-            # Option3: Set a = 0.5
             a_interface = a_interf
 
             # Idea: define ellipses in the inner region such that they coincide with the 
-            # element in the onion region.
-            # OPEN def semi-major axis
+            # elements in the onion region.
+            # OPEN def semi-major and semi-minor axis
             #--------------------------------------------------
             slope_row[0] = m.tan(m.pi/2*(j/ntheta))  # slope of the straight line on the bottom side
             slope_row[1] = m.tan(m.pi/2*((j+1)/ntheta)) # slope of the straight line on the top side
             slope_col[0] = m.tan(m.pi/2*((ntheta-i)/ntheta))  # slope of the straight line on the left side
             slope_col[1] = m.tan(m.pi/2*((ntheta-i-1)/ntheta)) # slope of the straight line on the right side
 
-#            b_row[0] = j*dr    # small semi-minor axis  
-#            b_row[1] = (j+1)*dr   # large semi-minor axis
-#            b_col[0] = i*dr    # small semi-minor axis  
-#            b_col[1] = (i+1)*dr   # large semi-minor axis
-
             b_row[0] = np.sum(dr_sq[:j])    # small semi-minor axis  
             b_row[1] = np.sum(dr_sq[:j+1])   # large semi-minor axis
             a_col[0] = np.sum(dr_sq[:i])    # small semi-major axis  
             a_col[1] = np.sum(dr_sq[:i+1])   # large semi-major axis
 
-
-#            x_inters_row[0] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[0],0)
-#            x_inters_row[1] = my_math.intersec_ellip_line(b_interface,a_interface,r_const,slope_row[1],0)
-#            y_inters_row[0] = my_math.line(slope_row[0],x_inters_row[0],0)
-#            y_inters_row[1] = my_math.line(slope_row[1],x_inters_row[1],0)
-#
-#            x_inters_col[0] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[0],0)
-#            x_inters_col[1] = my_math.intersec_ellip_line(a_interface,b_interface,r_const,slope_col[1],0)
-#            y_inters_col[0] = my_math.line(slope_col[0],x_inters_col[0],0)
-#            y_inters_col[1] = my_math.line(slope_col[1],x_inters_col[1],0)
-
-
-            # Alternative for distribution of points along intersection
+            # Set distribution of points along intersection
+            # Shrink elements when approaching northeast corner of square region
             dr_sq_inters_ratio = dr_sq_int_ratio
             x_inters_corner = my_math.intersec_ellip_ellip(a_interface, b_interface, r_const**2,\
                     b_interface, a_interface, r_const**2)
             dr_sq_inters_nominal = x_inters_corner/nSq
+            # distribution of elements along northern interface
             x_inters_col_dist = sq_dist(nSq, dr_sq_inters_nominal, dr_sq_inters_ratio)
             x_inters_col[0] = np.sum(x_inters_col_dist[:i])
             x_inters_col[1] = np.sum(x_inters_col_dist[:i+1])
             y_inters_col[0] = my_math.ellipse(a_interface, b_interface, r_const**2, x_inters_col[0])
             y_inters_col[1] = my_math.ellipse(a_interface, b_interface, r_const**2, x_inters_col[1])
 
+            # distribution of elements along eastern row
             y_inters_row_dist = x_inters_col_dist
             y_inters_row[0] = np.sum(y_inters_row_dist[:j])
             y_inters_row[1] = np.sum(y_inters_row_dist[:j+1])
             x_inters_row[0] = my_math.ellipse(a_interface, b_interface, r_const**2, y_inters_row[0])
             x_inters_row[1] = my_math.ellipse(a_interface, b_interface, r_const**2, y_inters_row[1])
 
-
-
+            # Find semi-major axis by the points at the intersection, r_const and semi-minor axis, 
+            # which is defined by the vertical position 
             if (j==0):
                 a_row[0] = 0   # this is reset later
                 a_row[1] = x_inters_row[1]*b_row[1]/( (r_const**2*b_row[1]**2 - y_inters_row[1]**2)**0.5 )
@@ -227,14 +222,17 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 a_row[0] = x_inters_row[0]*b_row[0]/( (r_const**2*b_row[0]**2 - y_inters_row[0]**2)**0.5 )
                 a_row[1] = x_inters_row[1]*b_row[1]/( (r_const**2*b_row[1]**2 - y_inters_row[1]**2)**0.5 )
 
-            if (i==0):                # note that x and y need to be switched here
+            # Find semi-minor axis by the points at the intersection, r_const and semi-major axis, 
+            # which is defined by the horizontal position 
+            # note that x and y need to be switched here
+            if (i==0): 
                 b_col[0] = 0   # this is reset later 
                 b_col[1] = y_inters_col[1]*a_col[1]/( (r_const**2*a_col[1]**2 - x_inters_col[1]**2)**0.5 )
             else:
                 b_col[0] = y_inters_col[0]*a_col[0]/( (r_const**2*a_col[0]**2 - x_inters_col[0]**2)**0.5 )
                 b_col[1] = y_inters_col[1]*a_col[1]/( (r_const**2*a_col[1]**2 - x_inters_col[1]**2)**0.5 )
 
-            # CLOSE def semi-major axis
+            # CLOSE def semi-major and semi-minor axis
             #--------------------------------------------------
 
             if (j==0): # first row
@@ -378,9 +376,6 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 #            a_on[1] = my_math.sin_dist(nR-nSq+1, a_interface, a_wall, j+1)
 
 
-
-
-            print(el.number, a_on, b_on)
 
             # Straight line defined by points on intersection square-onion and equidistantly
             # spaced points along circumference
