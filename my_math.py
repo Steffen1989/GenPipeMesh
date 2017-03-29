@@ -1,35 +1,6 @@
 # Some mathematics
 import math as m
 
-#def lin_dist(N, a_start, a_end, j):
-#    """ Linear distribution 
-#
-#    N       : number of steps
-#    a_start : starting value at j=0
-#    a_end   : finale value at j=N
-#    j       : step
-#    """
-#
-#    if (a_start > a_end):
-#        ret = a_start - (a_start - a_end)/(N) * (j)
-#    else:
-#        ret = a_start + (a_end - a_start)/N * j
-#    return ret
-
-
-#def quad_dist(N, a_end, a_start, j):
-#    """ Quadratic distribution 
-#
-#    N       : number of steps
-#    a_start : starting value at j=0
-#    a_end   : finale value at j=N
-#    j       : step
-#    """
-#
-#    ret = (a_end-a_start)/(N**2) * (j-N)**2 + a_start
-#    return ret
-
-
 
 def geom_prog(N, a_start, a_end, j):
     """ Geometric progression a(j) = a_start * r**j 
