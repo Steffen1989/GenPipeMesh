@@ -169,15 +169,17 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
         if (el.number <= nSq**2):   
             # This is the inner, "square" section
+            #--------------------------------------------------
             # OPEN square
             #--------------------------------------------------
             i = (el.number-1)%nSq     # column number
             j = int((el.number-1)/nSq)    # row number
 
-            # Determine the semi-major axis for interface between "square" 
+            # Determine the semi-major and semi-minor axis for interface between "square" 
             # and onion section
             #----------------------------------------------------------------------
             a_interface = a_interf
+            b_interface = np.sum(dr_sq[:])
 
             # Idea: define ellipses in the inner region such that they coincide with the 
             # elements in the onion region.
@@ -235,6 +237,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             # CLOSE def semi-major and semi-minor axis
             #--------------------------------------------------
 
+            # Set vertex position and curvature
             if (j==0): # first row
                 if (i==0):  # first col
                     x0 = np.sum(dr_sq[:i])
@@ -326,40 +329,28 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 el.c = np.array([c0, c1, c2, c3])
             else:
                 sys.exit(1)
-            #---------------------------------------------------
+            #--------------------------------------------------
             # END square
+            #--------------------------------------------------
         else:                       
             # This is the outer, "onion" section
+            #--------------------------------------------------
             # OPEN onion
             #--------------------------------------------------
-            i = ((el.number-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
+            i = ((el.number-1)-nSq**2)%(nSq*2)      # position in clockwise manner through each layer
             k = abs(i-((nSq*2)-1))                  # position in anticlockwise manner
             j = int(((el.number-1)-nSq**2)/(nSq*2)) # onion like layer number, inner one is first,
             # starting from j=0
-            l = (nR - nSq) - (j+1)                  # onion like layer number, outer one is last l=0
 
-            # Determine the semi-major axis for "onion" section
+            # Determine the semi-major and semi-minor axis for "onion" section
             #----------------------------------------------------------------------
             a_wall = 0.5    # semi-major axis at last layer (wall)
             
-#            if (j < (nR-nSq-1)):
-#                a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
-#                a_on[1] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j+1)
-#
-#            else:   # last element has a=0.5 on both sides
-#                a_on[0] = my_math.geom_prog(nR-nSq, a_interface, a_wall, j)
-#                a_on[1] = a_on[0]
-
-
-#            dr = dr_on
-#            b_on[0] = (j+nSq)*dr
-#            b_on[1] = (j+1+nSq)*dr
-
             # Semi minor-axis:
             b_on[0] = np.sum(dr_sq)+np.sum(dr_on[:j])
             b_on[1] = np.sum(dr_sq)+np.sum(dr_on[:j+1])
 
-            # Set semi-major axis decreasing for the interface value the the last value
+            # Set semi-major axis decreasing from the interface value to the last value
             # of semi-minor axis before the wall and finally to a_wall.
             # This ensures that the outermost onion layer has a constant radial size.
             b_last = np.sum(dr_sq)+np.sum(dr_on[:-1])
@@ -368,14 +359,6 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             if (j == nR-nSq-1): # we are in the outermost layer
                 a_on[0] = b_last
                 a_on[1] = a_wall
-
-#            a_on[0] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j)
-#            a_on[1] = my_math.geom_prog(nR-nSq+1, a_interface, a_wall, j+1)
-
-#            a_on[0] = my_math.sin_dist(nR-nSq+1, a_interface, a_wall, j)
-#            a_on[1] = my_math.sin_dist(nR-nSq+1, a_interface, a_wall, j+1)
-
-
 
             # Straight line defined by points on intersection square-onion and equidistantly
             # spaced points along circumference
@@ -387,6 +370,8 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             pt_wall_y[1] = nR*dr*m.sin(m.pi/2*((k+1)/ntheta))
 
 
+            # Get points along intersection for each element in onion region 
+            # Note that i and k are different than in square region
             dr_sq_inters_ratio = dr_sq_int_ratio
             x_inters_corner = my_math.intersec_ellip_ellip(a_interface, b_interface, r_const**2,\
                     b_interface, a_interface, r_const**2)
@@ -423,16 +408,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             # Definition of straight lines
 
 
-#            # Alternatively, define straight lines through the orign
-#            slope_on[0] = m.tan(m.pi/2*(k/ntheta))  # slope of the straight line on the right side
-#            # of the element (upper part) or bottom side (lower part)
-#            slope_on[1] = m.tan(m.pi/2*((k+1)/ntheta)) # slope of the straight line on the left side
-#            # of the element (upper part) or top side (lower part)
-#            print('old slope:', slope_on, k)
-#
-#            y_interc[0] = 0
-#            y_interc[1] = 0
-
+            # Set vertex position in onion region as well as curvature
             if (i <= (nSq-1)):  # upper part, including border /
                 x0 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[1],y_interc[1])
                 x1 = my_math.intersec_ellip_line(a_on[0],b_on[0],r_const**2,slope_on[0],y_interc[0])
@@ -452,6 +428,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
                 el.c = np.array([c0, c1, c2, c3])
+
             elif (i >= nSq):     # lower part, including border /
                 x0 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],y_interc[0])
                 x1 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[0],y_interc[0])
@@ -477,6 +454,7 @@ def compl_mesh(elements, nR, nSq):
     """ Complete the quarter mesh to a whole cross section """
 
     # Mirror the first quarter along y-axis to create mesh in 2nd quadrant
+    # then for 3rd and finally 4th quadrant
     nel_quarter = nSq**2 + (nR-nSq)*2*nSq       # number of elements in one quarter
     el_list_2nd = []     # list for the elements in the 2nd quadrant
     el_list_3rd = []     # list for the elements in the 3rd quadrant
@@ -502,6 +480,7 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.pos = el.pos
 
         # Boundary condition
+        # (This is reset later)
         mirr_el.bc = ['E  ','E  ','E  ','E  ']
 
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
@@ -533,6 +512,7 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.pos = el.pos
 
         # Boundary condition
+        # (This is reset later)
         mirr_el.bc = ['E  ','E  ','E  ','E  ']
 
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
@@ -564,6 +544,7 @@ def compl_mesh(elements, nR, nSq):
         mirr_el.pos = el.pos
 
         # Boundary condition
+        # (This is reset later)
         mirr_el.bc = ['E  ','E  ','E  ','E  ']
 
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
@@ -582,6 +563,10 @@ def compl_mesh(elements, nR, nSq):
 
 
 
+# Set the boundary conditions for each quadrant separately by checking the element's
+# position and writing the corresponding BCs into the element's attributes.
+# (This might be a possible cause of bugs since each BC is written manually
+# depending on its location. Even though I was very careful, this approach is prone to errors.)
 def set_bc_q1(elements,nR,nSq):
     """ Set boundary conditions for each face. 
     
@@ -595,7 +580,6 @@ def set_bc_q1(elements,nR,nSq):
 
     for el in elements:
         n = el.number
-#         position = check_position(n, nSq)
         check_position(el,nR,nSq)
         position = el.pos
 
@@ -1148,7 +1132,11 @@ def set_bc_q4(elements,nR,nSq):
 
     
 def check_position(element, nR, nSq):
-    """ Check position of the given element within the quarter region. """
+    """ Check position of the given element within the quarter region
+    and save it as an element attribute. 
+    
+    This is needed for choosing the right boundary conditions. 
+    """
 
     el = element
     n = el.number
@@ -1300,9 +1288,6 @@ def write_curv(elements):
     dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
         for f in range(4):
-#            curv.append('{0:10d} {1:6d} {2:10.6f} \
-#                    {3:10.6f} {4:10.6f} {5:10.6f} {6:10.6f} {7:10.6} {8:1s} {9:s}'\
-#            .format(f, el.number, el.curv, 0.0, 0.0, 0.0, 0.0, 0.0, 'C')
             curv.append('{iedge:2d} {current_el:{digits_n_tot}d}{curve1:10.5f}\
 {curve2:10.5f}{curve3:10.5f}{curve4:10.5f}{curve5:10.5f}{newline:s}'\
             .format(iedge=f+1, current_el=el.number, digits_n_tot=dig_n_tot,\
@@ -1587,10 +1572,8 @@ def check_mesh_quality(elements, nR, nSq, R):
             alpha_23 = my_math.vec_angle(vec2, -vec3)
             alpha_34 = my_math.vec_angle(-vec3, vec4)
             alpha_41 = my_math.vec_angle(-vec4, vec1)
- 
 
             alpha = np.array([ alpha_12, alpha_23, alpha_34, alpha_41 ])
-#            print(alpha/m.pi*180, np.sum(alpha)/m.pi*180, n)
 
             l_rad_max = max(l_rad)
             l_rad_min = min(l_rad)
@@ -1630,8 +1613,3 @@ def check_mesh_quality(elements, nR, nSq, R):
     print('alpha max = {0:10.5f}° at {2:d}\nalpha min = {1:10.5f}° at {3:d}'.format(alph_max/m.pi*180, alph_min/m.pi*180, el_alph_max, el_alph_min))
     print('Note that curvature is not considered here!')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-
-
-
-
-
