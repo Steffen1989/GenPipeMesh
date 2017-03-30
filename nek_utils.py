@@ -1531,9 +1531,12 @@ def rea_skel():
     f.close()
 
 
-def check_mesh_quality(elements, nR, nSq, R):
+def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     """ Find minimum and maximum radial and circumferential 
     element lengths and element angles (distortion from 90°).
+    Find resolution of the generated mesh considering 
+    Gauss-Lobatto-Legendre distribution of grid points 
+    within each element.
     """
     
     # only check first quadrant
@@ -1547,8 +1550,15 @@ def check_mesh_quality(elements, nR, nSq, R):
     l_p_min = 1e5
     alph_max = m.pi/4
     alph_min = m.pi/2
+    x_gll = np.zeros(N+1)   # Distribution of GLL points in reference element [-1,1]
+    d_x_gll = np.zeros(N+1) # Length between two adjacent GLL points
+    el_wall_ind = nSq**2+nSq*2*(nR-nSq-1)   # index of element at wall
+    w_ind = el_wall_ind     # copy
+    cum_el = 0              # radial length of cumulative elements before 10th pt from the wall
+    dz_rec = 0              # recommended size of streamwise elements
 
 
+    # Get size of elements themselves
     for el in elements:
         n = el.number
         i = ((n-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
@@ -1603,6 +1613,54 @@ def check_mesh_quality(elements, nR, nSq, R):
                 alph_min = alpha_min
                 el_alph_min = n
 
+    # Get size of the actual grid by considering GLL distribution of grid points
+    # GLL distribution on reference element x in [-1, 1]
+    x_gll = my_math.get_gll(N)
+    # Distance between two points on ref. element
+    d_x_gll = x_gll[0:-2] - x_gll[1:-1]
+    
+    r_plus_min = l_r_min*min(d_x_gll)*0.5*Re_t
+    r_plus_max = l_r_max*max(d_x_gll)*0.5*Re_t
+
+    el_wall_ind = w_ind
+
+    # Resolution in radial direction
+    r_1_plus = ((elements[w_ind].y[3] - elements[w_ind].y[0]))\
+            *min(d_x_gll)*0.5*Re_t
+
+    # First 10 point away from the wall is in which element?
+    away_from_wall = int(m.ceil(10 / (N+1)))
+    while away_from_wall > 1:
+        # Cumulative elements' radial length at the wall closer than 10th pt
+        cum_el = cum_el + elements[w_ind].y[3] - elements[w_ind].y[0]            
+
+        # Update 
+        away_from_wall = away_from_wall -1
+        w_ind = w_ind - 2*nSq
+
+    # Remaining pts up to 10th point x-th element
+    rem_pts = 10 % (N+1)
+    r_10_plus = (cum_el + \
+            (elements[w_ind].y[3] - elements[w_ind].y[0])* \
+            np.sum(d_x_gll[:rem_pts])*0.5)*Re_t
+
+    # Resolution in circumferential direction
+    
+    # First, we have to find the angle theta spanned by one element
+    theta_el = m.pi/2/(2*nSq)
+    # Only a portion of that is spanned between two adjacent grid points
+    theta_gp = theta_el*(max(d_x_gll)*0.5)
+    r_theta_max = R*theta_gp*Re_t
+
+
+
+
+    dz_rec = 10/(max(d_x_gll)*0.5*Re_t)
+            
+
+
+
+
 
     # Write a little output to stdout
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
@@ -1613,3 +1671,13 @@ def check_mesh_quality(elements, nR, nSq, R):
     print('alpha max = {0:10.5f}° at {2:d}\nalpha min = {1:10.5f}° at {3:d}'.format(alph_max/m.pi*180, alph_min/m.pi*180, el_alph_max, el_alph_min))
     print('Note that curvature is not considered here!')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    print('RESOLUTION')
+    print('----------')
+    print('Re_t = {0:d}'.format(Re_t))
+    print('Polynomial order N = {0:d}'.format(N))
+    print('r+ min      = {0:10.5f} (< 1)'.format(r_plus_min))
+    print('r+ max      = {0:10.5f} (< 5)'.format(r_plus_max))
+    print('r1+         = {0:10.5f} (< 1)'.format(r_1_plus))
+    print('r10+        = {0:10.5f} (<10)'.format(r_10_plus))
+    print('R theta max = {0:10.5f} (< 5)'.format(r_theta_max))
+    print('For z+ < 10, element length in streamwise < {0:10.5f}'.format(dz_rec))

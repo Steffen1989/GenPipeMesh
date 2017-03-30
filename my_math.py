@@ -1,5 +1,7 @@
 # Some mathematics
 import math as m
+import numpy as np
+import pdb
 
 
 def geom_prog(N, a_start, a_end, j):
@@ -113,7 +115,7 @@ def newton_raphson(x0, func, func_prime):
     func_prime  : first derivative
     """
     delta = 1e3
-    eps = 1e-12
+    eps = 1e-16
     x_old = x0
 
     while delta > eps:
@@ -151,3 +153,49 @@ def get_rad_ell(a, b, c, x):
             - b/a**2 * (c-x**2/a**2)**(-1/2)
     kappa = abs(y_prpr)/(1+y_pr**2)**(3/2)
     return 1/kappa
+
+def get_gll(N):
+    """ Get the Gauss-Lobatto-Legendre distribution of grid points.
+
+    The quadrature nodes (respectively the grid points) are given
+    by (see Canuto et al. 2006: Spectral methods - Fundamentals 
+    in single domains, ch. 2.3 , p. 75-76)
+    x[0] = -1
+    x[N] = 1
+    x[j] = zeros of L_N' for j = 1, ..., N
+    where L_N' is the first derivative of the n-th Legendre polynomial.
+    """
+
+    x = np.zeros(N+1)  # location of quadrature nodes
+    V = np.zeros((N+1, N+1))  # Legendre Vandermonde matrix
+    # This matrix evaluates a polynomial at a set of points so that 
+    # Vx = y as in y = P(x)
+    
+    # Initial guess taken from Gauss-Lobatta-Chebychev quadrature nodes
+    for i in range(0, N+1):
+        x[i] = m.cos(i*m.pi/N)
+
+    x_old = np.zeros(N+1)   # variable to store value of previous iteration
+    eps = np.finfo(float).eps
+
+    while max(abs(x - x_old)) > eps:
+
+        x_old = x   # update old value to the previous value
+
+        # Fill first two columns of Vandermonde matrix with starting
+        # values of the recursion formula.
+        V[:, 0] = 1
+        V[:, 1] = x
+
+        # Calculate the remaining columns of the Vandermonde matrix
+        # with recursion formula
+        for k in range(1, N):
+            V[:,k+1] = (2*k+1)/(k+1)*x*V[:,k] - k/(k+1)*V[:,k-1]
+            
+        # Update x values with Newton-Raphson algorithm to find the 
+        # roots of (1-x**2)*L_N'(x) = 0
+        # Derivation of the numerator and denominator are a bit tricky.
+        x = x_old - (x*V[:, N] - V[:, N-1])/(V[:, N]*(1+N))
+
+    return x
+

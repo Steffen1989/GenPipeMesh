@@ -1,4 +1,4 @@
-##!/usr/bin/env python3.5
+#!/usr/bin/env python3.5
 # This python script is inspired by pipeMeshNek.f90 from Jacopo Canton.
 # However, I am not that familiar with Fortran 90 and I wanted to 
 # improve my python skills and understand the mesh generation better.
@@ -21,13 +21,16 @@ import re
 
 # Input Variables
 #----------------------------------------------------------------------
-
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-nR = 8 
+nR = 32 
 #nSq = 19
-nSq = 4         # nel in square region along one side of the square
+nSq = 16         # nel in square region along one side of the square
 #nSq = 8
+
+# For Resolution
+N = 7           # Polynomial order
+Re_t = 1024      # Friction Reynolds number
 
 
 # Some Input for tuning the mesh
@@ -120,4 +123,4 @@ nek_utils.write_bc(el_list, nR, nSq)
 
 ## C: Do some checks
 #----------------------------------------------------------------------
-nek_utils.check_mesh_quality(el_list, nR, nSq, R)
+nek_utils.check_mesh_quality(el_list, nR, nSq, R, N, Re_t)
