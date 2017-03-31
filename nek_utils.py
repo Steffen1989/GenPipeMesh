@@ -1652,7 +1652,7 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
 
     el_wall_ind = w_ind
 
-    # Resolution in radial direction
+    # Resolution in radial direction calculated at y=0
     r_1_plus = ((elements[w_ind].y[3] - elements[w_ind].y[0]))\
             *min(d_x_gll)*0.5*Re_t
 
@@ -1677,35 +1677,38 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     # First, we have to find the angle theta spanned by one element
     theta_el = m.pi/2/(2*nSq)
     # Only a portion of that is spanned between two adjacent grid points
-    theta_gp = theta_el*(max(d_x_gll)*0.5)
-    r_theta_max = R*theta_gp*Re_t
-
+    theta_max_gp = theta_el*(max(d_x_gll)*0.5)
+    theta_min_gp = theta_el*(min(d_x_gll)*0.5)
+    r_theta_max = R*theta_max_gp*Re_t
+    r_theta_min = R*theta_min_gp*Re_t
 
 
 
     dz_rec = 10/(max(d_x_gll)*0.5*Re_t)
             
 
-
-
-
-
     # Write a little output to stdout
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     print('Some information about the mesh size:')
-    print('Delta R max = {0:12.5f} at {2:d}\nDelta R min = {1:12.5f} at {3:d}'.format(l_r_max, l_r_min, el_r_max, el_r_min))
-    print('Delta phi max = {0:10.5f} at {2:d}\nDelta phi min = {1:10.5f} at {3:d}'.format(l_p_max, l_p_min, el_p_max, el_p_min))
-    print('R*phi max = {0:10.5f}'.format(2*m.pi/nPhi*R))
-    print('alpha max = {0:10.5f}° at {2:d}\nalpha min = {1:10.5f}° at {3:d}'.format(alph_max/m.pi*180, alph_min/m.pi*180, el_alph_max, el_alph_min))
+    print('-------------------------------------')
+    print('Total number of elements in plane: {0:d}'.format(len(elements)*4))
+    print('Delta R max   = {0:10.5f} at {1:d}'.format(l_r_max, el_r_max))
+    print('Delta R min   = {0:10.5f} at {1:d}'.format(l_r_min, el_r_min))   
+    print('Delta phi max = {0:10.5f} at {1:d}'.format(l_p_max, el_p_max))
+    print('Delta phi min = {0:10.5f} at {1:d}'.format(l_p_min, el_p_min))   
+    print('R*phi max     = {0:10.5f}'.format(2*m.pi/nPhi*R))
+    print('alpha max     = {0:10.5f}° at {1:d}'.format(l_p_max, el_p_max))
+    print('alpha min     = {0:10.5f}° at {1:d}'.format(l_p_min, el_p_min))
     print('Note that curvature is not considered here!')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     print('RESOLUTION')
     print('----------')
     print('Re_t = {0:d}'.format(Re_t))
     print('Polynomial order N = {0:d}'.format(N))
-    print('r+ min      = {0:10.5f} (< 1)'.format(r_plus_min))
-    print('r+ max      = {0:10.5f} (< 5)'.format(r_plus_max))
-    print('r1+         = {0:10.5f} (< 1)'.format(r_1_plus))
-    print('r10+        = {0:10.5f} (<10)'.format(r_10_plus))
-    print('R theta max = {0:10.5f} (< 5)'.format(r_theta_max))
+    print('r+ min        = {0:10.5f} (< 1)'.format(r_plus_min))
+    print('r+ max        = {0:10.5f} (< 5)'.format(r_plus_max))
+    print('r1+           = {0:10.5f} (< 1)'.format(r_1_plus))
+    print('r10+          = {0:10.5f} (<10)'.format(r_10_plus))
+    print('R theta max   = {0:10.5f} (< 5)'.format(r_theta_max))
+    print('R theta min   = {0:10.5f} (< ?)'.format(r_theta_min))
     print('For z+ < 10, element length in streamwise < {0:10.5f}'.format(dz_rec))
