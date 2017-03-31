@@ -22,10 +22,10 @@ import re
 # Input Variables
 #----------------------------------------------------------------------
 R = 0.5         # radius
-#nR = 28         # nel in radial direction
-nR = 32 
-#nSq = 19
-nSq = 16         # nel in square region along one side of the square
+nR = 28         # nel in radial direction
+#nR = 8 
+nSq = 19
+#nSq = 4         # nel in square region along one side of the square
 #nSq = 8
 
 # For Resolution

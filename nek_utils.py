@@ -155,6 +155,8 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
     # pts along wall of the pipe
     pt_wall_x = np.zeros(2)
     pt_wall_y = np.zeros(2)
+
+    a_test_on = np.zeros(2)
  
     for el in elements:
 
@@ -350,15 +352,28 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             b_on[0] = np.sum(dr_sq)+np.sum(dr_on[:j])
             b_on[1] = np.sum(dr_sq)+np.sum(dr_on[:j+1])
 
-            # Set semi-major axis decreasing from the interface value to the last value
-            # of semi-minor axis before the wall and finally to a_wall.
-            # This ensures that the outermost onion layer has a constant radial size.
-            b_last = np.sum(dr_sq)+np.sum(dr_on[:-1])
-            a_on[0] = my_math.sin_dist(nR-nSq, a_interface, b_last, j)
-            a_on[1] = my_math.sin_dist(nR-nSq, a_interface, b_last, j+1)
-            if (j == nR-nSq-1): # we are in the outermost layer
-                a_on[0] = b_last
-                a_on[1] = a_wall
+            # Difference between prescribed semi-major axis at interface square-onion
+            # and semi-minor axis at the interface
+            a_diff = a_interface - np.sum(dr_sq)
+       
+            # Toggle for outermost layer having constant radial size
+            r_out_const = 1
+            if (r_out_const == 1):
+                # Set semi-major axis decreasing from the interface value to the last value
+                # of semi-minor axis before the wall and finally to a_wall.
+                # This ensures that the outermost onion layer has a constant radial size.
+                b_last = np.sum(dr_sq)+np.sum(dr_on[:-1])
+                if (j < nR-nSq-1):   # we are in the inner layers
+                    a_on[0] = b_on[0] + a_diff*my_math.sin_dist(nR-nSq, 1, 0, j)
+                    a_on[1] = b_on[1] + a_diff*my_math.sin_dist(nR-nSq, 1, 0, j+1)
+                else:                   # we are in the outermost layers
+                    a_on[0] = b_last
+                    a_on[1] = a_wall
+            else:
+                a_on[0] = b_on[0] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j)
+                a_on[1] = b_on[1] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j+1)
+
+
 
             # Straight line defined by points on intersection square-onion and equidistantly
             # spaced points along circumference
