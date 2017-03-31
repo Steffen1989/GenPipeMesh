@@ -1295,13 +1295,25 @@ def write_mesh(elements):
     f.close()
 
 def write_curv(elements):
-    """ Write curvature information to rea file. """
+    """ Write curvature information to rea file. 
+    
+    Note that only curved sides are allowed to be printed here.
+    """
 
+    # Count all the curved edges
+    num_curv = 0
+    for el in elements:
+        for f in range(0,4):
+            if (el.c[f] < 1e-15):
+                # set to zero
+                el.c[f] = 0
+            else:
+                num_curv = num_curv+1
     curv = []
     n_tot = len(elements)
-    curv.append('{0:10d} Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n'.format(n_tot*4))
-#    dig_n_tot = len(str(elements[-1].number))   # size of element number
-    # Check number of total elements for correct formatting of curved side data 
+    curv.append('{0:10d} Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n'.format(num_curv))
+
+    # Check number of curved sides for correct formatting of curved side data 
     # (see Nek5000 user doc. p. 20)
     if (n_tot < 1e3):
         format_str = '{iedge:3d}{current_el:3d}{curve1:14.6f}\
@@ -1318,9 +1330,10 @@ def write_curv(elements):
 
     for el in elements:
         for f in range(4):
-            curv.append(format_str.format(iedge=f+1, current_el=el.number,\
-            curve1=el.c[f],curve2=0.0,curve3=0.0,curve4=0.0,curve5=0.0,\
-            ccurve='C',newline='\n'))
+            if (el.c[f] > 1e-15):
+                curv.append(format_str.format(iedge=f+1, current_el=el.number,\
+                curve1=el.c[f],curve2=0.0,curve3=0.0,curve4=0.0,curve5=0.0,\
+                ccurve='C',newline='\n'))
 
     f = open('base.rea','r')
     contents = f.readlines()
