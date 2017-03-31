@@ -121,6 +121,9 @@ nek_utils.write_curv(el_list)
 #----------------------------------------------------------------------
 nek_utils.write_bc(el_list, nR, nSq)
 
-## C: Do some checks
+## C: Do some checks and write a little output
 #----------------------------------------------------------------------
+nek_utils.dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq,\
+        dr_sq_ratio, dr_sq_int_ratio, distri_on, a_interf)
+
 nek_utils.check_mesh_quality(el_list, nR, nSq, R, N, Re_t)

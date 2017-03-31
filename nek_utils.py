@@ -1559,6 +1559,25 @@ def rea_skel():
     f.close()
 
 
+def dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq, dr_sq_ratio,\
+        dr_sq_int_ratio, distri_on, a_interf):
+    """ Print all the input variables so the output can be 
+    saved and used to correctly recreate the mesh.
+    """
+
+    print('INPUT VARIABLES:')
+    print('----------------')
+    print('R                = {0:10.5f}'.format(R))
+    print('nR               = {0:10.5f}'.format(nR))
+    print('nSq              = {0:10.5f}'.format(nSq))
+    print('N                = {0:10.5f}'.format(N))
+    print('Re_t             = {0:10.5f}'.format(Re_t))
+    print('stretch_sq       = {0:10.5f}'.format(stretch_sq))
+    print('dr_sq_ratio      = {0:10.5f}'.format(dr_sq_ratio))
+    print('dr_sq_int_ratio  = {0:10.5f}'.format(dr_sq_int_ratio))
+    print('distri_on        = {0:10.5f}'.format(distri_on))
+    print('a_interf         = {0:10.5f}'.format(a_interf))
+
 def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     """ Find minimum and maximum radial and circumferential 
     element lengths and element angles (distortion from 90°).
@@ -1692,23 +1711,23 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     print('Some information about the mesh size:')
     print('-------------------------------------')
     print('Total number of elements in plane: {0:d}'.format(len(elements)*4))
-    print('Delta R max   = {0:10.5f} at {1:d}'.format(l_r_max, el_r_max))
-    print('Delta R min   = {0:10.5f} at {1:d}'.format(l_r_min, el_r_min))   
-    print('Delta phi max = {0:10.5f} at {1:d}'.format(l_p_max, el_p_max))
-    print('Delta phi min = {0:10.5f} at {1:d}'.format(l_p_min, el_p_min))   
-    print('R*phi max     = {0:10.5f}'.format(2*m.pi/nPhi*R))
-    print('alpha max     = {0:10.5f}° at {1:d}'.format(l_p_max, el_p_max))
-    print('alpha min     = {0:10.5f}° at {1:d}'.format(l_p_min, el_p_min))
+    print('Delta R max      = {0:10.5f} at {1:d}'.format(l_r_max, el_r_max))
+    print('Delta R min      = {0:10.5f} at {1:d}'.format(l_r_min, el_r_min))   
+    print('Delta phi max    = {0:10.5f} at {1:d}'.format(l_p_max, el_p_max))
+    print('Delta phi min    = {0:10.5f} at {1:d}'.format(l_p_min, el_p_min))   
+    print('R*phi max        = {0:10.5f}'.format(2*m.pi/nPhi*R))
+    print('alpha max        = {0:10.5f}° at {1:d}'.format(l_p_max, el_p_max))
+    print('alpha min        = {0:10.5f}° at {1:d}'.format(l_p_min, el_p_min))
     print('Note that curvature is not considered here!')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     print('RESOLUTION')
     print('----------')
     print('Re_t = {0:d}'.format(Re_t))
     print('Polynomial order N = {0:d}'.format(N))
-    print('r+ min        = {0:10.5f} (< 1)'.format(r_plus_min))
-    print('r+ max        = {0:10.5f} (< 5)'.format(r_plus_max))
-    print('r1+           = {0:10.5f} (< 1)'.format(r_1_plus))
-    print('r10+          = {0:10.5f} (<10)'.format(r_10_plus))
-    print('R theta max   = {0:10.5f} (< 5)'.format(r_theta_max))
-    print('R theta min   = {0:10.5f} (< ?)'.format(r_theta_min))
+    print('r+ min           = {0:10.5f} (< 1)'.format(r_plus_min))
+    print('r+ max           = {0:10.5f} (< 5)'.format(r_plus_max))
+    print('r1+              = {0:10.5f} (< 1)'.format(r_1_plus))
+    print('r10+             = {0:10.5f} (<10)'.format(r_10_plus))
+    print('R theta max      = {0:10.5f} (< 5)'.format(r_theta_max))
+    print('R theta min      = {0:10.5f} (< ?)'.format(r_theta_min))
     print('For z+ < 10, element length in streamwise < {0:10.5f}'.format(dz_rec))
