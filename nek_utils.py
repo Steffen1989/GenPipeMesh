@@ -1300,14 +1300,27 @@ def write_curv(elements):
     curv = []
     n_tot = len(elements)
     curv.append('{0:10d} Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n'.format(n_tot*4))
-    dig_n_tot = len(str(elements[-1].number))   # size of element number
+#    dig_n_tot = len(str(elements[-1].number))   # size of element number
+    # Check number of total elements for correct formatting of curved side data 
+    # (see Nek5000 user doc. p. 20)
+    if (n_tot < 1e3):
+        format_str = '{iedge:3d}{current_el:3d}{curve1:14.6f}\
+{curve2:14.6f}{curve3:14.6f}{curve4:14.6f}{curve5:14.6f} {ccurve:s}\
+{newline:s}'
+    elif (n_tot < 1e6):
+        format_str = '{iedge:2d}{current_el:6d}{curve1:14.6f}\
+{curve2:14.6f}{curve3:14.6f}{curve4:14.6f}{curve5:14.6f} {ccurve:s}\
+{newline:s}'
+    else:
+        format_str = '{iedge:2d}{current_el:12}{curve1:14.6f}\
+{curve2:14.6f}{curve3:14.6f}{curve4:14.6f}{curve5:14.6f} {ccurve:s}\
+{newline:s}'
+
     for el in elements:
         for f in range(4):
-            curv.append('{iedge:2d} {current_el:{digits_n_tot}d}{curve1:10.5f}\
-{curve2:10.5f}{curve3:10.5f}{curve4:10.5f}{curve5:10.5f}{newline:s}'\
-            .format(iedge=f+1, current_el=el.number, digits_n_tot=dig_n_tot,\
+            curv.append(format_str.format(iedge=f+1, current_el=el.number,\
             curve1=el.c[f],curve2=0.0,curve3=0.0,curve4=0.0,curve5=0.0,\
-            newline='\n'))
+            ccurve='C',newline='\n'))
 
     f = open('base.rea','r')
     contents = f.readlines()
