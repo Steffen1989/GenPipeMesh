@@ -1722,8 +1722,6 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     print('RESOLUTION')
     print('----------')
-    print('Re_t = {0:d}'.format(Re_t))
-    print('Polynomial order N = {0:d}'.format(N))
     print('r+ min           = {0:10.5f} (< 1)'.format(r_plus_min))
     print('r+ max           = {0:10.5f} (< 5)'.format(r_plus_max))
     print('r1+              = {0:10.5f} (< 1)'.format(r_1_plus))
