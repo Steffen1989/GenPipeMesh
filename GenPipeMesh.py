@@ -23,9 +23,9 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-nR = 8 
+nR = 4 
 #nSq = 19
-nSq = 4         # nel in square region along one side of the square
+nSq = 2         # nel in square region along one side of the square
 #nSq = 8
 
 # For Resolution

@@ -255,8 +255,12 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                     
                     # use the midpoint between two vertices to calculate the curvature 
                     c0 = 0
-                    c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const**2, (x1+x2)/2)
-                    c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3/2))
+                    # note that for c1 and c2 we use the midpoint of y-coordinates and
+                    # switch semi-major and semi-minor axis so that symmetry for
+                    # the curvature is preserved, i.e. same curvature at interface 
+                    # sq-onion in upper part and sq-onion lower part.
+                    c1 = my_math.get_rad_ell(b_col[1],a_col[1],r_const**2, (y1+y2)/2)
+                    c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3)/2)
                     c3 = 0
 
                     el.x = np.array([x0, x1, x2, x3])
@@ -276,13 +280,15 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                     y3 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x3)
 
                     c0 = 0
-                    c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const**2, (x1+x2)/2)
+                    c1 = my_math.get_rad_ell(b_col[1],a_col[1],r_const**2, (y1+y2)/2)
                     c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3)/2)
-                    c3 = my_math.get_rad_ell(a_col[0],b_col[0],r_const**2, (x0+x3)/2)
+                    c3 = my_math.get_rad_ell(b_col[0],a_col[0],r_const**2, (y0+y3)/2)
 
                     el.x = np.array([x0, x1, x2, x3])
                     el.y = np.array([y0, y1, y2, y3])
                     el.c = np.array([c0, c1, c2, c3])
+#                    el.c = np.array([c0, 1.2200311, c2, c3])
+#                    el.c = np.array([c0, 1.20221489, c2, c3])
 
             elif (j>0 and i==0): # first col
                 x0 = np.sum(dr_sq[:i])
@@ -298,7 +304,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 y3 = np.sum(dr_sq[:j+1])
 
                 c0 = my_math.get_rad_ell(a_row[0],b_row[0],r_const**2, (x0+x1)/2)
-                c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const**2, (x1+x2)/2)
+                c1 = my_math.get_rad_ell(b_col[1],a_col[1],r_const**2, (y1+y2)/2)
                 c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3)/2)
                 c3 = 0
 
@@ -321,16 +327,17 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 y2 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x2)
                 y3 = my_math.ellipse(a_row[1],b_row[1],r_const**2,x3)
 
-                c0 = my_math.get_rad_ell(a_row[0],b_row[0],r_const*+2, (x0+x1)/2)
-                c1 = my_math.get_rad_ell(a_col[1],b_col[1],r_const*+2, (x1+x2)/2)
-                c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const*+2, (x2+x3)/2)
-                c3 = my_math.get_rad_ell(a_col[0],b_col[0],r_const*+2, (x0+x3)/2)
+                c0 = my_math.get_rad_ell(a_row[0],b_row[0],r_const**2, (x0+x1)/2)
+                c1 = my_math.get_rad_ell(b_col[1],a_col[1],r_const**2, (y1+y2)/2)
+                c2 = my_math.get_rad_ell(a_row[1],b_row[1],r_const**2, (x2+x3)/2)
+                c3 = my_math.get_rad_ell(b_col[0],a_col[0],r_const**2, (y0+y3)/2)
 
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
                 el.c = np.array([c0, c1, c2, c3])
             else:
                 sys.exit(1)
+            print(i, j, el.number, '\n', el.x, '\n', el.c, '\n', a_row, a_col, '\n', b_row, b_col)
             #--------------------------------------------------
             # END square
             #--------------------------------------------------
@@ -435,9 +442,9 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 y2 = my_math.ellipse(a_on[1],b_on[1],r_const**2,x2)
                 y3 = my_math.ellipse(a_on[1],b_on[1],r_const**2,x3)
 
-                c0 = my_math.get_rad_ell(a_on[0],b_on[0],r_const*+2, (x0+x1)/2)
+                c0 = my_math.get_rad_ell(a_on[0],b_on[0],r_const**2, (x0+x1)/2)
                 c1 = 0
-                c2 = my_math.get_rad_ell(a_on[1],b_on[1],r_const*+2, (x2+x3)/2)
+                c2 = my_math.get_rad_ell(a_on[1],b_on[1],r_const**2, (x2+x3)/2)
                 c3 = 0
 
                 el.x = np.array([x0, x1, x2, x3])
@@ -445,6 +452,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 el.c = np.array([c0, c1, c2, c3])
 
             elif (i >= nSq):     # lower part, including border /
+                # note that semi-major and semi-minor axis are switched
                 x0 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],y_interc[0])
                 x1 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[0],y_interc[0])
                 x2 = my_math.intersec_ellip_line(b_on[1],a_on[1],r_const**2,slope_on[1],y_interc[1])
@@ -456,13 +464,17 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 y3 = my_math.line(slope_on[1],x3,y_interc[1])
                 
                 c0 = 0
-                c1 = my_math.get_rad_ell(a_on[1],b_on[1],r_const*+2, (x1+x2)/2)
+                # Note that we use y-coordinates midpoint again as above. 
+                # We do not need to switch semi-major and semi-minor axis.
+                c1 = my_math.get_rad_ell(a_on[1],b_on[1],r_const**2, (y1+y2)/2)
                 c2 = 0
-                c3 = my_math.get_rad_ell(a_on[0],b_on[0],r_const*+2, (x0+x3)/2)
+                c3 = my_math.get_rad_ell(a_on[0],b_on[0],r_const**2, (y0+y3)/2)
 
                 el.y = np.array([y0, y1, y2, y3])
                 el.x = np.array([x0, x1, x2, x3])
                 el.c = np.array([c0, c1, c2, c3])
+                print(i, j, el.number, '\n', el.x, '\n', el.c, '\n', a_on, '\n', b_on)
+
 
 
 def compl_mesh(elements, nR, nSq):
@@ -1304,10 +1316,7 @@ def write_curv(elements):
     num_curv = 0
     for el in elements:
         for f in range(0,4):
-            if (el.c[f] < 1e-15):
-                # set to zero
-                el.c[f] = 0
-            else:
+            if (el.c[f] > 1e-15):
                 num_curv = num_curv+1
     curv = []
     n_tot = len(elements)
