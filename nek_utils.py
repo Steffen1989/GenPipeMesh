@@ -265,6 +265,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
                     el.x = np.array([x0, x1, x2, x3])
                     el.y = np.array([y0, y1, y2, y3])
+                    # Set concave sides to negative and convex positive
                     el.c = np.array([c0, c1, c2, c3])
                 else:
                     x0 = np.sum(dr_sq[:i])
@@ -286,9 +287,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
                     el.x = np.array([x0, x1, x2, x3])
                     el.y = np.array([y0, y1, y2, y3])
-                    el.c = np.array([c0, c1, c2, c3])
-#                    el.c = np.array([c0, 1.2200311, c2, c3])
-#                    el.c = np.array([c0, 1.20221489, c2, c3])
+                    el.c = np.array([c0, c1, c2, -c3])
 
             elif (j>0 and i==0): # first col
                 x0 = np.sum(dr_sq[:i])
@@ -310,7 +309,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
-                el.c = np.array([c0, c1, c2, c3])
+                el.c = np.array([-c0, c1, c2, c3])
             elif (i> 0 and j>0):    # inside
                 #find intersection between both ellipses
                 x0 = my_math.intersec_ellip_ellip(a_row[0],b_row[0],r_const**2,\
@@ -334,10 +333,11 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
-                el.c = np.array([c0, c1, c2, c3])
+                el.c = np.array([-c0, c1, c2, -c3])
             else:
                 sys.exit(1)
-            print(i, j, el.number, '\n', el.x, '\n', el.c, '\n', a_row, a_col, '\n', b_row, b_col)
+
+            print(i, j, el.number, '\n', el.x, '\n', el.c)
             #--------------------------------------------------
             # END square
             #--------------------------------------------------
@@ -449,8 +449,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
                 el.x = np.array([x0, x1, x2, x3])
                 el.y = np.array([y0, y1, y2, y3])
-                el.c = np.array([c0, c1, c2, c3])
-
+                el.c = np.array([-c0, c1, c2, c3])
             elif (i >= nSq):     # lower part, including border /
                 # note that semi-major and semi-minor axis are switched
                 x0 = my_math.intersec_ellip_line(b_on[0],a_on[0],r_const**2,slope_on[0],y_interc[0])
@@ -472,9 +471,7 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
 
                 el.y = np.array([y0, y1, y2, y3])
                 el.x = np.array([x0, x1, x2, x3])
-                el.c = np.array([c0, c1, c2, c3])
-                print(i, j, el.number, '\n', el.x, '\n', el.c, '\n', a_on, '\n', b_on)
-
+                el.c = np.array([c0, c1, c2, -c3])
 
 
 def compl_mesh(elements, nR, nSq):
@@ -1316,7 +1313,7 @@ def write_curv(elements):
     num_curv = 0
     for el in elements:
         for f in range(0,4):
-            if (el.c[f] > 1e-15):
+            if (abs(el.c[f]) > 1e-15):
                 num_curv = num_curv+1
     curv = []
     n_tot = len(elements)
@@ -1339,7 +1336,7 @@ def write_curv(elements):
 
     for el in elements:
         for f in range(4):
-            if (el.c[f] > 1e-15):
+            if (abs(el.c[f]) > 1e-15):
                 curv.append(format_str.format(iedge=f+1, current_el=el.number,\
                 curve1=el.c[f],curve2=0.0,curve3=0.0,curve4=0.0,curve5=0.0,\
                 ccurve='C',newline='\n'))
