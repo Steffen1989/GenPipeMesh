@@ -23,9 +23,9 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-nR = 4 
+nR = 8 
 #nSq = 19
-nSq = 2         # nel in square region along one side of the square
+nSq = 4         # nel in square region along one side of the square
 #nSq = 8
 
 # For Resolution
@@ -37,20 +37,29 @@ Re_t = 180      # Friction Reynolds number
 #----------------------------------------------------------------------
 
 # Stretch nominal value of dr in square by this factor
-stretch_sq = 1.05    
+stretch_sq = 1.3    
 # Min to max element length along axis in square
-dr_sq_ratio = 0.95  
+dr_sq_ratio = 0.80  
 
 # Ratio of min to max element x (resp. y) component along intersection
 # Note that this is not the real length but its projection along x-, 
 # respective y-axis
 dr_sq_int_ratio = 0.9    
 # First xx in onion region is increasing and (xx-1) is decreasing
-distri_on = 0.5     
+distri_on = 0.0     
 
 # Semi-major axis at the interface betwenn square and onion region
 # Note: semi-minor axis is defined by position of element along y-axis
 a_interf = 0.57
+
+# Keep the outermost onion layer constant: 
+# 0 = not const., 1 = const.
+tog_r_out_const = 0
+# Use exp. or sin distribution for semi-major axis in onion region
+# exp gives a sharper decrease, hence more circle like shape in 
+# the first onion layers.
+# 0 = exp, 1 = sin
+tog_a_on_dist = 0
 
 
 # Define some global variables here:
@@ -86,7 +95,8 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
 # (This is the essential part of the code)
 #----------------------------------------------------------------------
 nek_utils.set_vertices(el_list, nR, nSq, dr, dr_sq_ratio,\
-        dr_sq_int_ratio, stretch_sq, distri_on, a_interf)
+        dr_sq_int_ratio, stretch_sq, distri_on, a_interf,\
+        tog_r_out_const, tog_a_on_dist)
 
 ## A.1.2: Set boundary conditions for faces 
 #----------------------------------------------------------------------
@@ -124,6 +134,7 @@ nek_utils.write_bc(el_list, nR, nSq)
 ## C: Do some checks and write a little output
 #----------------------------------------------------------------------
 nek_utils.dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq,\
-        dr_sq_ratio, dr_sq_int_ratio, distri_on, a_interf)
+        dr_sq_ratio, dr_sq_int_ratio, distri_on, a_interf,\
+        tog_r_out_const, tog_a_on_dist)
 
 nek_utils.check_mesh_quality(el_list, nR, nSq, R, N, Re_t)

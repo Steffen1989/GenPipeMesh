@@ -22,7 +22,8 @@ def geom_prog(N, a_start, a_end, j):
     return ret
 
 def sin_dist(N, start, end, i):
-    """ Sine distribution with a clustering at the end
+    """ Sine distribution with a clustering at the end.
+    Strong changes for the first values
 
     N       : number of steps
     start   : starting value at i=0
@@ -35,6 +36,23 @@ def sin_dist(N, start, end, i):
     r = start - (start-end)*m.sin(m.pi/2*i/(N-1))
 
     return r
+
+def cos_dist(N, start, end, i):
+    """ Cosine distribution with a clustering at the end.
+    Strong changes for the last values
+
+    N       : number of steps
+    start   : starting value at i=0
+    end     : final value at i=N-1
+
+    """
+    if (end > start):   # swap
+        start, end = end, start
+    
+    r = end + (start-end)*m.cos(m.pi/2*i/(N-1))
+
+    return r
+
 
 def exp_dist(N, start, end, i):
     """ Exponential decay distribution 
@@ -140,8 +158,8 @@ def newton_raphson(x0, func, func_prime):
 
     while delta > eps:
         x_new = x_old - func(x_old)/func_prime(x_old)
-        x_old = x_new
         delta = abs(x_new-x_old)
+        x_old = x_new
 
     return x_old
 

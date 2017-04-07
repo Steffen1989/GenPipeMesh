@@ -44,55 +44,102 @@ def on_dist(nR, nSq, dr, dr_sq, distri_on):
     """
     
     n_on_1 = int(m.floor(distri_on*(nR-nSq)))     # increasing region
-    if (n_on_1<2):  # needs to be at least 2
-        n_on_1 = 2
-    n_on_2 = (nR-nSq) - n_on_1              #decreasing region
     dr_sq_min = min(dr_sq)
     dr_on_interface = dr_sq_min
-    
-    # The critical part here is to use geometric progression first and 
-    # cosine distribution afterwards. However, the overall length needs 
-    # to be the same as with the nominal values (nR-nSq)*dr.
-    # In order to fulfill this condition, the following two functions 
-    # are needed.
-    def x_transition(x):
-        """ This function is defined by the requirement that the total length
-        of both onion regions needs to be (nR-nSq)*dr and we end up at r = R.
-        Note that the first element of the second region is not the same as 
-        the last of the first region, i.e. both regions "share" dr_transition.
-        """
-    
-        sum_cos = 0
-        for i in range(1,n_on_2+1):
-            sum_cos = sum_cos + m.cos(i/(n_on_2+1)*m.pi/2)
-        ret = -dr*(nR-nSq) + dr_sq_min * (1-(x/dr_sq_min)**(n_on_1/(n_on_1-1)))/\
-                (1-(x/dr_sq_min)**(1/(n_on_1-1))) + x*sum_cos
-        return ret
-    
-    def x_transition_prime(x):
-        """ First derivative of x_transition function
-        """
-    
-        sum_cos = 0
-        for i in range(1,n_on_2+1):
-            sum_cos = sum_cos + m.cos(i/(n_on_2+1)*m.pi/2)
-        ret = sum_cos + dr_sq_min * ( (-n_on_1/(n_on_1-1)*x**(n_on_1/(n_on_1-1)-1)*\
-                dr_sq_min**(n_on_1/(1-n_on_1))) * (1-(x/dr_sq_min)**(1/(n_on_1-1)))**(-1)+\
-                (1-(x/dr_sq_min)**(n_on_1/(n_on_1-1)))*(-1)*(1-(x/dr_sq_min)**(1/(n_on_1-1)))**(-2)*\
-                (-dr_sq_min**(1/(1-n_on_1))*1/(n_on_1-1)*x**(1/(n_on_1-1)-1)))
-        return ret
-    
-    # Find the size of the element in between the increasing and decreasing regions
-    # by the requirement that the total size of the onion region is still
-    # (nR-nSq)*dr by using newton raphson algorithm for finding roots.
-    dr_on_transition = my_math.newton_raphson(dr,x_transition, x_transition_prime)
-    dr_on_1 = np.zeros(n_on_1)  # size distribution in increasing region
-    for i in range(0,n_on_1):
-        dr_on_1[i] = my_math.geom_prog(n_on_1,dr_on_interface, dr_on_transition, i)
-    dr_on_2 = np.zeros(n_on_2)  # size distribution in decreasing region
-    for i in range(0,n_on_2):
-        dr_on_2[i] = dr_on_transition*m.cos((i+1)/(n_on_2+1)*m.pi/2)
-    dr_on = np.concatenate([dr_on_1, dr_on_2])
+
+    if (n_on_1<2):  
+        # If it is too small then only shrink 
+        # Note that condition of total length being (nR-nSq)*dr
+        # still needs to be fulfilled. Besides, we keep the first
+        # element's size at a certain percentage of the adjacent square region's 
+        # elements.
+        # Hence, the only free parameter is the smallest element
+        # close to the wall.
+        n_on_2 = (nR-nSq)
+        first_shrink = 1.0
+        first_el = dr_sq_min*first_shrink
+
+#        def on_shrink(x):   
+#            """ This functions purpose is to ensure that the total 
+#            length of the onion region in radial direction is correct.
+#            It is needed for Newton-Raphson later on.
+#            """
+#
+#            sum_sin = 0
+#            for i in range(0, n_on_2):
+#                sum_sin = sum_sin + m.sin( m.pi/2 * i/(n_on_2-1) )
+#            ret = -dr*(nR-nSq) + n_on_2*first_el - (first_el -x )*\
+#                    sum_sin
+#            return ret
+#
+#        def d_on_shrink(x):   
+#            """ This is just the first derivative of on_shrink(x).
+#            """
+#            sum_sin = 0
+#            for i in range(0, n_on_2):
+#                sum_sin = sum_sin + m.sin( m.pi/2 * i/(n_on_2-1) )
+#            ret = sum_sin
+#
+#            return ret
+#        # initial guess is somewhat arbitrarily set to first_el/10
+#        dr_on_wall = my_math.newton_raphson(first_el/10, on_shrink, d_on_shrink)
+#        pdb.set_trace()
+        sum_sin = 0
+        for i in range(0,n_on_2):
+            sum_sin = sum_sin + m.sin(m.pi/2 *i/(n_on_2-1))
+        dr_on_wall = (dr*(nR-nSq) - n_on_2*first_el)/(sum_sin) + first_el
+        dr_on = np.zeros(n_on_2)
+        for i in range(0,n_on_2):
+            dr_on[i] = my_math.sin_dist(n_on_2, first_el, dr_on_wall,i)
+    else:
+        # Use increasing region first and afterwards decreasing
+        n_on_2 = (nR-nSq) - n_on_1              #decreasing region
+        dr_sq_min = min(dr_sq)
+        dr_on_interface = dr_sq_min
+        
+        # The critical part here is to use geometric progression first and 
+        # cosine distribution afterwards. However, the overall length needs 
+        # to be the same as with the nominal values (nR-nSq)*dr.
+        # In order to fulfill this condition, the following two functions 
+        # are needed.
+        def x_transition(x):
+            """ This function is defined by the requirement that the total length
+            of both onion regions needs to be (nR-nSq)*dr and we end up at r = R.
+            Note that the first element of the second region is not the same as 
+            the last of the first region, i.e. both regions "share" dr_transition.
+            """
+        
+            sum_cos = 0
+            for i in range(1,n_on_2+1):
+                sum_cos = sum_cos + m.cos(i/(n_on_2+1)*m.pi/2)
+            ret = -dr*(nR-nSq) + dr_sq_min * (1-(x/dr_sq_min)**(n_on_1/(n_on_1-1)))/\
+                    (1-(x/dr_sq_min)**(1/(n_on_1-1))) + x*sum_cos
+            return ret
+        
+        def x_transition_prime(x):
+            """ First derivative of x_transition function
+            """
+        
+            sum_cos = 0
+            for i in range(1,n_on_2+1):
+                sum_cos = sum_cos + m.cos(i/(n_on_2+1)*m.pi/2)
+            ret = sum_cos + dr_sq_min * ( (-n_on_1/(n_on_1-1)*x**(n_on_1/(n_on_1-1)-1)*\
+                    dr_sq_min**(n_on_1/(1-n_on_1))) * (1-(x/dr_sq_min)**(1/(n_on_1-1)))**(-1)+\
+                    (1-(x/dr_sq_min)**(n_on_1/(n_on_1-1)))*(-1)*(1-(x/dr_sq_min)**(1/(n_on_1-1)))**(-2)*\
+                    (-dr_sq_min**(1/(1-n_on_1))*1/(n_on_1-1)*x**(1/(n_on_1-1)-1)))
+            return ret
+        
+        # Find the size of the element in between the increasing and decreasing regions
+        # by the requirement that the total size of the onion region is still
+        # (nR-nSq)*dr by using newton raphson algorithm for finding roots.
+        dr_on_transition = my_math.newton_raphson(dr,x_transition, x_transition_prime)
+        dr_on_1 = np.zeros(n_on_1)  # size distribution in increasing region
+        for i in range(0,n_on_1):
+            dr_on_1[i] = my_math.geom_prog(n_on_1,dr_on_interface, dr_on_transition, i)
+        dr_on_2 = np.zeros(n_on_2)  # size distribution in decreasing region
+        for i in range(0,n_on_2):
+            dr_on_2[i] = dr_on_transition*m.cos((i+1)/(n_on_2+1)*m.pi/2)
+        dr_on = np.concatenate([dr_on_1, dr_on_2])
 
     # make sure that last element is exactly at R and not only close because
     # of rounding errors
@@ -113,7 +160,7 @@ def on_dist(nR, nSq, dr, dr_sq, distri_on):
 # MAJOR FUNCTION for setting the vertex positions:
 #----------------------------------------------------------------------
 def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq, distri_on,
-        a_interf):
+        a_interf, tog_r_out_const, tog_a_on_dist):
     """ Set vertex location for each element. 
 
     The vertices are set in a special way. 
@@ -336,8 +383,6 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                 el.c = np.array([-c0, c1, c2, -c3])
             else:
                 sys.exit(1)
-
-            print(i, j, el.number, '\n', el.x, '\n', el.c)
             #--------------------------------------------------
             # END square
             #--------------------------------------------------
@@ -364,8 +409,8 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
             a_diff = a_interface - np.sum(dr_sq)
        
             # Toggle for outermost layer having constant radial size
-            r_out_const = 1
-            if (r_out_const == 1):
+#            tog_r_out_const = 0
+            if (tog_r_out_const == 1):
                 # Set semi-major axis decreasing from the interface value to the last value
                 # of semi-minor axis before the wall and finally to a_wall.
                 # This ensures that the outermost onion layer has a constant radial size.
@@ -377,9 +422,13 @@ def set_vertices(elements, nR, nSq, dr, dr_sq_ratio, dr_sq_int_ratio, stretch_sq
                     a_on[0] = b_last
                     a_on[1] = a_wall
             else:
-                a_on[0] = b_on[0] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j)
-                a_on[1] = b_on[1] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j+1)
-
+#                tog_a_on_dist = 1
+                if (tog_a_on_dist == 0):
+                    a_on[0] = b_on[0] + a_diff*my_math.exp_dist(nR-nSq+1, 1, 0, j)
+                    a_on[1] = b_on[1] + a_diff*my_math.exp_dist(nR-nSq+1, 1, 0, j+1)
+                else:
+                    a_on[0] = b_on[0] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j)
+                    a_on[1] = b_on[1] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j+1)
 
 
             # Straight line defined by points on intersection square-onion and equidistantly
@@ -1579,7 +1628,8 @@ def rea_skel():
 
 
 def dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq, dr_sq_ratio,\
-        dr_sq_int_ratio, distri_on, a_interf):
+        dr_sq_int_ratio, distri_on, a_interf,\
+        tog_r_out_const, tog_a_on_dist):
     """ Print all the input variables so the output can be 
     saved and used to correctly recreate the mesh.
     """
@@ -1596,6 +1646,9 @@ def dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq, dr_sq_ratio,\
     print('dr_sq_int_ratio  = {0:10.5f}'.format(dr_sq_int_ratio))
     print('distri_on        = {0:10.5f}'.format(distri_on))
     print('a_interf         = {0:10.5f}'.format(a_interf))
+    print('tog_r_out_const  = {0:10.5f}'.format(tog_r_out_const))
+    print('tog_a_on_dist    = {0:10.5f}'.format(tog_a_on_dist))
+
 
 def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     """ Find minimum and maximum radial and circumferential 
@@ -1614,8 +1667,8 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     l_r_min = 1e5
     l_p_max = 0
     l_p_min = 1e5
-    alph_max = m.pi/4
-    alph_min = m.pi/2
+    alph_max = 0
+    alph_min = 1e5
     x_gll = np.zeros(N+1)   # Distribution of GLL points in reference element [-1,1]
     d_x_gll = np.zeros(N+1) # Length between two adjacent GLL points
     el_wall_ind = nSq**2+nSq*2*(nR-nSq-1)   # index of element at wall
@@ -1735,16 +1788,18 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     print('Delta phi max    = {0:10.5f} at {1:d}'.format(l_p_max, el_p_max))
     print('Delta phi min    = {0:10.5f} at {1:d}'.format(l_p_min, el_p_min))   
     print('R*phi max        = {0:10.5f}'.format(2*m.pi/nPhi*R))
-    print('alpha max        = {0:10.5f}° at {1:d}'.format(l_p_max, el_p_max))
-    print('alpha min        = {0:10.5f}° at {1:d}'.format(l_p_min, el_p_min))
+    print('alpha max        = {0:10.5f}° at {1:d}'.format(alph_max*(180/m.pi), el_alph_max))
+    print('alpha min        = {0:10.5f}° at {1:d}'.format(alph_min*(180/m.pi), el_alph_min))
     print('Note that curvature is not considered here!')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     print('RESOLUTION')
     print('----------')
-    print('r+ min           = {0:10.5f} (< 1)'.format(r_plus_min))
-    print('r+ max           = {0:10.5f} (< 5)'.format(r_plus_max))
-    print('r1+              = {0:10.5f} (< 1)'.format(r_1_plus))
-    print('r10+             = {0:10.5f} (<10)'.format(r_10_plus))
-    print('R theta max      = {0:10.5f} (< 5)'.format(r_theta_max))
-    print('R theta min      = {0:10.5f} (< ?)'.format(r_theta_min))
+    print('r+ min           = {0:10.5f}  (< 1  )'.format(r_plus_min))
+    print('r+ max           = {0:10.5f}  (< 5  )'.format(r_plus_max))
+    print('r1+              = {0:10.5f}  (< 1  )'.format(r_1_plus))
+    print('r10+             = {0:10.5f}  (<10  )'.format(r_10_plus))
+    print('R theta plus max = {0:10.5f}° (<  5°)'.format(r_theta_max))
+    print('R theta plus min = {0:10.5f}° (<1.5°)'.format(r_theta_min))
     print('For z+ < 10, element length in streamwise < {0:10.5f}'.format(dz_rec))
+    print('Radial resolution is evaluated at vertical axis.')
+    print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
