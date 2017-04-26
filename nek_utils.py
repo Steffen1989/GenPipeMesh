@@ -1511,7 +1511,7 @@ def rea_skel():
     f.write('   0.00000     P062: >0 --> force byte_swap for output\n')
     f.write('   0.00000     P063: =8 --> force 8-byte output\n')
     f.write('   0.00000     P064: =1 --> perturbation restart\n')
-    f.write('   0.00000     P065: #iofiles (eg, 0 or 64); <0 --> sep. dirs\n')
+    f.write('   1.00000     P065: #iofiles (eg, 0 or 64); <0 --> sep. dirs\n')
     f.write('   6.00000     P066: output : <0=ascii, else binary\n')
     f.write('   6.00000     P067: restart: <0=ascii, else binary\n')
     f.write('   10.0000     P068: STAT_COMP: how often you compute stats\n')
