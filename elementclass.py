@@ -17,9 +17,10 @@ class Element:
         # position within quarter section
         self.pos = ''
 
-        # boundary conditions for each face
+        # fluid and thermal boundary conditions for each face
         # convention is [south, east, north, west]
-        self.bc = []
+        self.fl_bc = [] 
+        self.th_bc = []
 
         # boundary condition parameters
         self.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west

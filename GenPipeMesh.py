@@ -129,7 +129,8 @@ nek_utils.write_mesh(el_list)
 nek_utils.write_curv(el_list)
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
-nek_utils.write_bc(el_list, nR, nSq)
+nek_utils.write_fl_bc(el_list, nR, nSq)
+nek_utils.write_th_bc(el_list, nR, nSq)
 
 ## C: Do some checks and write a little output
 #----------------------------------------------------------------------

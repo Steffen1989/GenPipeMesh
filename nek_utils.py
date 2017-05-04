@@ -554,7 +554,7 @@ def compl_mesh(elements, nR, nSq):
 
         # Boundary condition
         # (This is reset later)
-        mirr_el.bc = ['E  ','E  ','E  ','E  ']
+        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
 
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
@@ -586,7 +586,7 @@ def compl_mesh(elements, nR, nSq):
 
         # Boundary condition
         # (This is reset later)
-        mirr_el.bc = ['E  ','E  ','E  ','E  ']
+        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
 
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
@@ -618,7 +618,7 @@ def compl_mesh(elements, nR, nSq):
 
         # Boundary condition
         # (This is reset later)
-        mirr_el.bc = ['E  ','E  ','E  ','E  ']
+        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
 
         mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
         mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
@@ -661,39 +661,48 @@ def set_bc_q1(elements,nR,nSq):
             j = int((n-1)/nSq)    # row number
 
             if (position == 'sq_low_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nel_quarter*3, n+1, n+nSq, n+nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_low_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nel_quarter*3, nSq**2+(2*nSq-j), n+nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n+1, n+nSq, n+nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, nSq**2+(2*nSq-j), n+nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_north_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n+1, n+nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_east_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, nSq**2+(2*nSq-j), n+nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_south_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nel_quarter*3, n+1, n+nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_west_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n+1, n+nSq, n+nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_internal'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n+1, n+nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -706,76 +715,94 @@ def set_bc_q1(elements,nR,nSq):
 
             if ('on_up' in position):   # we are in the upper onion part
                 if (position == 'on_up_south_sq_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-nSq, n+1, n+2*nSq, n+nel_quarter])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_south_sq_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-nSq, n+1, n+2*nSq, n-1])
                     el.bc_con_f = np.array([3, 3, 1, 2])
                 elif (position == 'on_up_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n+1, n+2*nSq, n-1])
                     el.bc_con_f = np.array([3, 3, 1, 2])
                 elif (position == 'on_up_south_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-nSq, n+1, n+2*nSq, n-1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_west_y_north_wall'):
-                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.fl_bc = ['E  ','E  ','W  ','E  ']
+                    el.th_bc = ['E  ','E  ','f  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n+1, 0, n+nel_quarter])
                     el.bc_con_f = np.array([3, 4, 0, 2])
                 elif (position == 'on_up_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n+1, n+2*nSq, n+nel_quarter])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_north_wall_east_edge'):
-                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.fl_bc = ['E  ','E  ','W  ','E  ']
+                    el.th_bc = ['E  ','E  ','f  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n+1, 0, n-1])
                     el.bc_con_f = np.array([3, 3, 0, 2])
                 elif (position == 'on_up_north_wall'):
-                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.fl_bc = ['E  ','E  ','W  ','E  ']
+                    el.th_bc = ['E  ','E  ','f  ','E  ']                   
                     el.bc_con_el = np.array([n-2*nSq, n+1, 0, n-1])
                     el.bc_con_f = np.array([3, 4, 0, 2])
                 elif (position == 'on_up_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  '] 
                     el.bc_con_el = np.array([n-2*nSq, n+1, n+2*nSq, n-1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             elif ('on_low' in position):    # we are in the lower onion part
                 if (position == 'on_low_west_sq_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+nel_quarter*3, n+nSq*2, n-1, (k+1)*nSq])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_west_sq_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, n+nSq*2, n-1, (k+1)*nSq])
                     el.bc_con_f = np.array([3, 4, 2, 2])
                 elif (position == 'on_low_west_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, n+nSq*2, n-1, (k+1)*nSq])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_south_x_east_wall'):
-                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.fl_bc = ['E  ','W  ','E  ','E  ']
+                    el.th_bc = ['E  ','f  ','E  ','E  ']
                     el.bc_con_el = np.array([n+nel_quarter*3, 0, n-1, n-nSq*2])
                     el.bc_con_f = np.array([3, 0, 1, 2])
                 elif (position == 'on_low_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+nel_quarter*3, n+nSq*2, n-1, n-nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_east_wall_north_edge'):
-                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.fl_bc = ['E  ','W  ','E  ','E  ']
+                    el.th_bc = ['E  ','f  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, 0, n-1, n-nSq*2])
                     el.bc_con_f = np.array([3, 0, 2, 2])
                 elif (position == 'on_low_east_wall'):
-                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.fl_bc = ['E  ','W  ','E  ','E  ']
+                    el.th_bc = ['E  ','f  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, 0, n-1, n-nSq*2])
                     el.bc_con_f = np.array([3, 0, 1, 2])
                 elif (position == 'on_low_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, n+nSq*2, n-1, n-nSq*2])
                     el.bc_con_f = np.array([3, 4, 2, 2])
                 elif (position == 'on_low_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, n+nSq*2, n-1, n-nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -802,39 +829,48 @@ def set_bc_q2(elements,nR,nSq):
             j = int((n-nel_quarter-1)/nSq)    # row number
 
             if (position == 'sq_low_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nel_quarter, n-nel_quarter, n+nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_low_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nel_quarter, n-1, n+nSq, nSq**2+(2*nSq-j)+nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n-nel_quarter, n+nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n-1, n+nSq, nSq**2+(2*nSq-j)+nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_north_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n-1, n+nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_east_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n-1, n+nSq, nSq**2+(2*nSq-j)+nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_south_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nel_quarter, n-1, n+nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_west_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n-nel_quarter, n+nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_internal'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n-nSq, n-1, n+nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -847,76 +883,94 @@ def set_bc_q2(elements,nR,nSq):
 
             if ('on_up' in position):   # we are in the upper onion part
                 if (position == 'on_up_south_sq_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-nSq, n-nel_quarter, n+2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_south_sq_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-nSq, n-1, n+2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 3])
                 elif (position == 'on_up_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n-1, n+2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 3])
                 elif (position == 'on_up_south_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-nSq, n-1, n+2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_west_y_north_wall'):
-                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.fl_bc = ['E  ','E  ','W  ','E  ']
+                    el.th_bc = ['E  ','E  ','f  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n-nel_quarter, 0, n+1])
                     el.bc_con_f = np.array([3, 4, 0, 2])
                 elif (position == 'on_up_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n-nel_quarter, n+2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_north_wall_east_edge'):
-                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.fl_bc = ['E  ','E  ','W  ','E  ']
+                    el.th_bc = ['E  ','E  ','f  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n-1, 0, n+1])
                     el.bc_con_f = np.array([3, 4, 0, 3])
                 elif (position == 'on_up_north_wall'):
-                    el.bc = ['E  ','E  ','W  ','E  ']
+                    el.fl_bc = ['E  ','E  ','W  ','E  ']
+                    el.th_bc = ['E  ','E  ','f  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n-1, 0, n+1])
                     el.bc_con_f = np.array([3, 4, 0, 2])
                 elif (position == 'on_up_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-2*nSq, n-1, n+2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             elif ('on_low' in position):    # we are in the lower onion part
                 if (position == 'on_low_west_sq_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+nel_quarter, (k+1)*nSq+nel_quarter, n-1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_west_sq_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, (k+1)*nSq+nel_quarter, n-1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 4, 2])
                 elif (position == 'on_low_west_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, (k+1)*nSq+nel_quarter, n-1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_south_x_east_wall'):
-                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.fl_bc = ['E  ','E  ','E  ','W  ']
+                    el.th_bc = ['E  ','E  ','E  ','f  ']
                     el.bc_con_el = np.array([n+nel_quarter, n-nSq*2, n-1, 0])
                     el.bc_con_f = np.array([3, 4, 1, 0])
                 elif (position == 'on_low_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+nel_quarter, n-nSq*2, n-1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_east_wall_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.fl_bc = ['E  ','E  ','E  ','W  ']
+                    el.th_bc = ['E  ','E  ','E  ','f  ']
                     el.bc_con_el = np.array([n+1, n-nSq*2, n-1, 0])
                     el.bc_con_f = np.array([3, 4, 4, 0])
                 elif (position == 'on_low_east_wall'):
-                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.fl_bc = ['E  ','E  ','E  ','W  ']
+                    el.th_bc = ['E  ','E  ','E  ','f  ']
                     el.bc_con_el = np.array([n+1, n-nSq*2, n-1, 0])
                     el.bc_con_f = np.array([3, 4, 1, 0])
                 elif (position == 'on_low_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, n-nSq*2, n-1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 4, 2])
                 elif (position == 'on_low_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+1, n-nSq*2, n-1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -942,39 +996,48 @@ def set_bc_q3(elements,nR,nSq):
             j = int((n-nel_quarter*2-1)/nSq)    # row number
 
             if (position == 'sq_low_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+nel_quarter, n-nel_quarter, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_low_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n-1, n-nel_quarter, nSq**2+(2*nSq-j)+nel_quarter*2])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+nel_quarter, n-nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n-1, n-nSq, nSq**2+(2*nSq-j)+nel_quarter*2])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_north_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n-1, n-nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_east_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n-1, n-nSq, nSq**2+(2*nSq-j)+nel_quarter*2])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_south_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n-1, n-nel_quarter, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_west_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+nel_quarter, n-nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_internal'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n-1, n-nSq, n+1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -987,76 +1050,94 @@ def set_bc_q3(elements,nR,nSq):
 
             if ('on_up' in position):   # we are in the upper onion part
                 if (position == 'on_up_south_sq_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+nel_quarter, n-nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_south_sq_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n-1, n-nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 1])
                 elif (position == 'on_up_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n-1, n-2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 1])
                 elif (position == 'on_up_south_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n-1, n-nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_west_y_north_wall'):
-                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.fl_bc = ['W  ','E  ','E  ','E  ']
+                    el.th_bc = ['f  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([0, n+nel_quarter, n-2*nSq, n+1])
                     el.bc_con_f = np.array([0, 4, 1, 2])
                 elif (position == 'on_up_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+nel_quarter, n-2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_north_wall_east_edge'):
-                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.fl_bc = ['W  ','E  ','E  ','E  ']
+                    el.th_bc = ['f  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([0, n-1, n-2*nSq, n+1])
                     el.bc_con_f = np.array([0, 4, 1, 1])
                 elif (position == 'on_up_north_wall'):
-                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.fl_bc = ['W  ','E  ','E  ','E  ']
+                    el.th_bc = ['f  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([0, n-1, n-2*nSq, n+1])
                     el.bc_con_f = np.array([0, 4, 1, 2])
                 elif (position == 'on_up_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n-1, n-2*nSq, n+1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             elif ('on_low' in position):    # we are in the lower onion part
                 if (position == 'on_low_west_sq_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, (k+1)*nSq+nel_quarter*2, n-nel_quarter, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_west_sq_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, (k+1)*nSq+nel_quarter*2, n+1, n+nSq*2])
                     el.bc_con_f = np.array([4, 4, 1, 2])
                 elif (position == 'on_low_west_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, (k+1)*nSq+nel_quarter*2, n+1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_south_x_east_wall'):
-                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.fl_bc = ['E  ','E  ','E  ','W  ']
+                    el.th_bc = ['E  ','E  ','E  ','f  ']                   
                     el.bc_con_el = np.array([n-1, n-nSq*2, n-nel_quarter, 0])
                     el.bc_con_f = np.array([3, 4, 1, 0])
                 elif (position == 'on_low_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n-nSq*2, n-nel_quarter, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_east_wall_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.fl_bc = ['E  ','E  ','E  ','W  ']
+                    el.th_bc = ['E  ','E  ','E  ','f  ']
                     el.bc_con_el = np.array([n-1, n-nSq*2, n+1, 0])
                     el.bc_con_f = np.array([4, 4, 1, 0])
                 elif (position == 'on_low_east_wall'):
-                    el.bc = ['E  ','E  ','E  ','W  ']
+                    el.fl_bc = ['E  ','E  ','E  ','W  ']
+                    el.th_bc = ['E  ','E  ','E  ','f  ']
                     el.bc_con_el = np.array([n-1, n-nSq*2, n+1, 0])
                     el.bc_con_f = np.array([3, 4, 1, 0])
                 elif (position == 'on_low_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n-nSq*2, n+1, n+nSq*2])
                     el.bc_con_f = np.array([4, 4, 1, 2])
                 elif (position == 'on_low_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n-nSq*2, n+1, n+nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -1082,39 +1163,48 @@ def set_bc_q4(elements,nR,nSq):
             j = int((n-nel_quarter*3-1)/nSq)    # row number
 
             if (position == 'sq_low_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+1, n-nel_quarter*3, n-nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_low_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, nSq**2+(2*nSq-j)+nel_quarter*3, n-nel_quarter*3, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_left'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+1, n-nSq, n-nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_up_right'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, nSq**2+(2*nSq-j)+nel_quarter*3, n-nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_north_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+1, n-nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_east_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, nSq**2+(2*nSq-j)+nel_quarter*3, n-nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_south_row'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+1, n-nel_quarter*3, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_west_col'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+1, n-nSq, n-nel_quarter])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             elif (position == 'sq_internal'):
-                el.bc = ['E  ','E  ','E  ','E  ']
+                el.fl_bc = ['E  ','E  ','E  ','E  ']
+                el.th_bc = ['E  ','E  ','E  ','E  ']
                 el.bc_con_el = np.array([n+nSq, n+1, n-nSq, n-1])
                 el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -1127,76 +1217,94 @@ def set_bc_q4(elements,nR,nSq):
 
             if ('on_up' in position):   # we are in the upper onion part
                 if (position == 'on_up_south_sq_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+1, n-nSq, n-nel_quarter])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_south_sq_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+1, n-nSq, n-1])
                     el.bc_con_f = np.array([3, 1, 1, 4])
                 elif (position == 'on_up_east_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+1, n-2*nSq, n-1])
                     el.bc_con_f = np.array([3, 1, 1, 4])
                 elif (position == 'on_up_south_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+1, n-nSq, n-1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_west_y_north_wall'):
-                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.fl_bc = ['W  ','E  ','E  ','E  ']
+                    el.th_bc = ['f  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([0, n+1, n-2*nSq, n-nel_quarter])
                     el.bc_con_f = np.array([0, 4, 1, 2])
                 elif (position == 'on_up_west_y'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+1, n-2*nSq, n-nel_quarter])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_up_north_wall_east_edge'):
-                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.fl_bc = ['W  ','E  ','E  ','E  ']
+                    el.th_bc = ['f  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([0, n+1, n-2*nSq, n-1])
                     el.bc_con_f = np.array([0, 1, 1, 4])
                 elif (position == 'on_up_north_wall'):
-                    el.bc = ['W  ','E  ','E  ','E  ']
+                    el.fl_bc = ['W  ','E  ','E  ','E  ']
+                    el.th_bc = ['f  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([0, n+1, n-2*nSq, n-1])
                     el.bc_con_f = np.array([0, 4, 1, 2])
                 elif (position == 'on_up_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n+2*nSq, n+1, n-2*nSq, n-1])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             elif ('on_low' in position):    # we are in the lower onion part
                 if (position == 'on_low_west_sq_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n+nSq*2, n-nel_quarter*3, (k+1)*nSq+nel_quarter*3])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_west_sq_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n+nSq*2, n+1, (k+1)*nSq+nel_quarter*3])
                     el.bc_con_f = np.array([2, 4, 1, 4])
                 elif (position == 'on_low_west_sq'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n+nSq*2, n+1, (k+1)*nSq+nel_quarter*3])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_south_x_east_wall'):
-                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.fl_bc = ['E  ','W  ','E  ','E  ']
+                    el.th_bc = ['E  ','f  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, 0, n-nel_quarter*3, n-nSq*2])
                     el.bc_con_f = np.array([3, 0, 1, 4])
                 elif (position == 'on_low_south_x'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n+nSq*2, n-nel_quarter*3, n-nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
                 elif (position == 'on_low_east_wall_north_edge'):
-                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.fl_bc = ['E  ','W  ','E  ','E  ']
+                    el.th_bc = ['E  ','f  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, 0, n+1, n-nSq*2])
                     el.bc_con_f = np.array([2, 0, 1, 1])
                 elif (position == 'on_low_east_wall'):
-                    el.bc = ['E  ','W  ','E  ','E  ']
+                    el.fl_bc = ['E  ','W  ','E  ','E  ']
+                    el.th_bc = ['E  ','f  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, 0, n+1, n-nSq*2])
                     el.bc_con_f = np.array([3, 0, 1, 4])
                 elif (position == 'on_low_north_edge'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n+nSq*2, n+1, n-nSq*2])
                     el.bc_con_f = np.array([2, 4, 1, 2])
                 elif (position == 'on_low_intern'):
-                    el.bc = ['E  ','E  ','E  ','E  ']
+                    el.fl_bc = ['E  ','E  ','E  ','E  ']
+                    el.th_bc = ['E  ','E  ','E  ','E  ']
                     el.bc_con_el = np.array([n-1, n+nSq*2, n+1, n-nSq*2])
                     el.bc_con_f = np.array([3, 4, 1, 2])
             else:
@@ -1407,8 +1515,8 @@ def write_curv(elements):
     f.close()
 
 
-def write_bc(elements, nR, nSq):
-    """ Write boundary conditions to rea file. """
+def write_fl_bc(elements, nR, nSq):
+    """ Write fluid boundary conditions to rea file. """
 
     bc = []
     dig_n_tot = len(str(elements[-1].number))   # size of element number
@@ -1416,7 +1524,7 @@ def write_bc(elements, nR, nSq):
         for f in range(4):
             bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
 {con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
-            .format(boundary=el.bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
+            .format(boundary=el.fl_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
             con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
             zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
 
@@ -1436,6 +1544,35 @@ def write_bc(elements, nR, nSq):
     f.write(contents)
     f.close()
 
+
+def write_th_bc(elements, nR, nSq):
+    """ Write fluid boundary conditions to rea file. """
+
+    bc = []
+    dig_n_tot = len(str(elements[-1].number))   # size of element number
+    for el in elements:
+        for f in range(4):
+            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
+{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
+            .format(boundary=el.th_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
+            con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
+            zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+
+    f = open('base.rea','r')
+    contents = f.readlines()
+    f.close()
+ 
+    # find row for bc data
+    line_bc = 0
+    while (not 'THERMAL BOUNDARY CONDITIONS' in contents[line_bc]):
+        line_bc = line_bc + 1
+ 
+    # and write it to rea file
+    contents[line_bc+1:line_bc+1] = bc
+    contents = "".join(contents)
+    f = open('base.rea','w')
+    f.write(contents)
+    f.close()
 
 
 def rea_skel():
@@ -1511,7 +1648,7 @@ def rea_skel():
     f.write('   0.00000     P062: >0 --> force byte_swap for output\n')
     f.write('   0.00000     P063: =8 --> force 8-byte output\n')
     f.write('   0.00000     P064: =1 --> perturbation restart\n')
-    f.write('   0.00000     P065: #iofiles (eg, 0 or 64); <0 --> sep. dirs\n')
+    f.write('   1.00000     P065: #iofiles (eg, 0 or 64); <0 --> sep. dirs\n')
     f.write('   6.00000     P066: output : <0=ascii, else binary\n')
     f.write('   6.00000     P067: restart: <0=ascii, else binary\n')
     f.write('   10.0000     P068: STAT_COMP: how often you compute stats\n')
@@ -1590,7 +1727,8 @@ def rea_skel():
 #    f.write('       0 Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n')
     f.write('  ***** BOUNDARY CONDITIONS *****\n')
     f.write('  ***** FLUID BOUNDARY CONDITIONS *****\n')
-    f.write('   ***** NO THERMAL BOUNDARY CONDITIONS *****\n')
+#    f.write('   ***** NO THERMAL BOUNDARY CONDITIONS *****\n')
+    f.write('   ***** THERMAL BOUNDARY CONDITIONS *****\n')
     f.write('    0 PRESOLVE/RESTART OPTIONS  *****\n')
     f.write('    7         INITIAL CONDITIONS *****\n')
     f.write(' C Default\n')
