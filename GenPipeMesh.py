@@ -27,6 +27,8 @@ nR = 8
 #nSq = 19
 nSq = 4         # nel in square region along one side of the square
 #nSq = 8
+L_z = 1.00      # Length in streamwise direction z
+nz = 4          # Number of elements in streamwise direction z
 
 # For Resolution
 N = 7           # Polynomial order
@@ -66,15 +68,20 @@ tog_a_on_dist = 0
 #----------------------------------------------------------------------
 dr_nominal = R/nR       # nominal length of one element
 dr = dr_nominal
+dz = L_z/nz
 
 el_list = []    # list of all elements
+# number of elements in one cross section
+nel_quarter = (nSq**2+(nR-nSq)*nSq*2)
+nel_cross_section = nel_quarter*4       
+
 number = 1
 # Populate list of elements: first, the square region
 for i in range(nSq):
     for j in range(nSq):
         el = elementclass.Element()
         el.number = number
-        el.c = np.zeros(4)
+#        el.c = np.zeros(4)
         el_list.append(el)
         number = number + 1
 # Populate list of elements: second, the curved region outside (onion region)
@@ -82,9 +89,20 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
     for j in range(nSq*2): # loop in clockwise direction through each layer
         el = elementclass.Element()
         el.number = number
-        el.c = np.zeros(4)
+#        el.c = np.zeros(4)
         el_list.append(el)
         number = number + 1
+# Populate list of elements: third, streamwise direction
+for iz in range(1,nz):          # loop through streamwise cross sections
+    # loop over all elements in the previous cross section
+    for prev_el in range(nel_quarter):    
+        el = elementclass.Element()
+        el.number = prev_el+1 + iz*nel_cross_section
+        el_list.append(el)
+
+        
+
+
 
 
 ## A: Generate the mesh
@@ -94,7 +112,7 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
 ## A.1.1: Set vertex positions of elements
 # (This is the essential part of the code)
 #----------------------------------------------------------------------
-nek_utils.set_vertices(el_list, nR, nSq, dr, dr_sq_ratio,\
+nek_utils.set_vertices(el_list, nR, nSq, dr, dz, dr_sq_ratio,\
         dr_sq_int_ratio, stretch_sq, distri_on, a_interf,\
         tog_r_out_const, tog_a_on_dist)
 
