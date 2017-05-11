@@ -1630,14 +1630,25 @@ def write_mesh(elements):
     for el in elements:      # loop through all elements
         x = el.x
         y = el.y
+        z = el.z
         n = el.number
 
         mesh.append('{0:>19s} {1:10d} {2:6s}{3:1s}{4:12s}'.format\
             ('ELEMENT',n,'[    1','a',']  GROUP  0\n'))
-        mesh.append('{0: 10.6f}{1: 14.6f}{2: 14.6f}{3: 14.6f}   {4:s}'.format\
+        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
             (x[0], x[1], x[2], x[3], '\n'))   # x coordinates
-        mesh.append('{0: 10.6f}{1: 14.6f}{2: 14.6f}{3: 14.6f}   {4:s}'.format\
+        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
             (y[0], y[1], y[2], y[3], '\n'))  # y coordinates
+        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+            (z[0], z[1], z[2], z[3], '\n'))  # z coordinates
+        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+            (x[4], x[5], x[6], x[7], '\n'))   # x coordinates
+        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+            (y[4], y[5], y[6], y[7], '\n'))  # y coordinates
+        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+            (z[4], z[5], z[6], z[7], '\n'))  # z coordinates
+
+
 
     f = open('base.rea','r')
     contents = f.readlines()
