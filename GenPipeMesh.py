@@ -92,15 +92,18 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
 #        el.c = np.zeros(4)
         el_list.append(el)
         number = number + 1
-# Populate list of elements: third, streamwise direction
-for iz in range(1,nz):          # loop through streamwise cross sections
-    # loop over all elements in the previous cross section
-    for prev_el in range(nel_quarter):    
-        el = elementclass.Element()
-        el.number = prev_el+1 + iz*nel_cross_section
-        el_list.append(el)
-
-        
+#### Populate list of elements: third, streamwise direction
+########
+#### Note that this leads to a different ordering of the elements
+########
+###for iz in range(1,nz):          # loop through streamwise cross sections
+###    # loop over all elements in the previous cross section
+###    for prev_el in range(nel_quarter):    
+###        el = elementclass.Element()
+###        el.number = prev_el+1 + iz*nel_cross_section
+###        el_list.append(el)
+###
+###pdb.set_trace()        
 
 
 
@@ -126,9 +129,13 @@ nek_utils.set_bc_q1(el_list,nR,nSq)
 ## A.2.1: Set vertex positions
 #----------------------------------------------------------------------
 nek_utils.compl_mesh(el_list,nR,nSq)
+nek_utils.extrude(el_list,nR,nSq,nz,dz)
+
+
 ## A.2.2: Set boundary conditions
 # (for each quarter separately)
 #----------------------------------------------------------------------
+#nek_utils.set_bc_q1(el_list,nR,nSq)
 nek_utils.set_bc_q2(el_list,nR,nSq)
 nek_utils.set_bc_q3(el_list,nR,nSq)
 nek_utils.set_bc_q4(el_list,nR,nSq)

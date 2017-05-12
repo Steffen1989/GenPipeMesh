@@ -217,7 +217,7 @@ def set_vertices(elements, nR, nSq, dr, dz, dr_sq_ratio, dr_sq_int_ratio, \
     for el in elements:
         # Check in which cross section we are
         nel_cross_section = (nSq**2+(nR-nSq)*nSq*2)*4
-        cross_sec = int(el.number/nel_cross_section)
+        cross_sec = int((el.number-1)/nel_cross_section)
         # Reduce current element number to be within the first cross section
         n = el.number - cross_sec*nel_cross_section
 
@@ -743,12 +743,12 @@ def compl_mesh(elements, nR, nSq):
         # Position
         mirr_el.pos = el.pos
 
-        # Boundary condition
-        # (This is reset later)
-        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
-
-        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
-        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
+#        # Boundary condition
+#        # (This is reset later)
+#        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
+#
+#        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
+#        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
          # Curvature
         mirr_el.c = np.array([el.c[2], el.c[1], el.c[0], el.c[3],\
@@ -761,6 +761,43 @@ def compl_mesh(elements, nR, nSq):
     elements.extend(el_list_2nd)
     elements.extend(el_list_3rd)
     elements.extend(el_list_4th)
+
+
+def extrude(elements,nR,nSq,nz,dz):
+    """ Set vertex positions, number, position of the element, and curvature
+    """
+    
+    el_list_section = []    # For collection the newly created elements
+
+    nel_cross_section = (nSq**2+(nR-nSq)*nSq*2)*4
+
+    # Generate nz-1 new cross sections
+    for z in range(1,nz):
+        # Loop over all elements in the first cross section
+        for el in elements: 
+            # Define an extruded element
+            ext_el = elementclass.Element()
+    
+            # Number
+            ext_el.number = el.number + nel_cross_section*z
+    
+            # Vertices
+            ext_el.x = el.x
+            ext_el.y = el.y
+            ext_el.z = el.z+(dz*z)
+    
+            # Position
+            ext_el.pos = el.pos
+    
+            # Curvature
+            ext_el.c = el.c
+    
+            el_list_section.append(ext_el)
+
+    elements.extend(el_list_section)
+
+
+
 
 
 
@@ -1828,7 +1865,7 @@ def write_fl_bc(elements, nR, nSq):
     bc = []
     dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
-        for f in range(4):
+        for f in range(6):
             bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
 {con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
             .format(boundary=el.fl_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
@@ -1858,7 +1895,7 @@ def write_th_bc(elements, nR, nSq):
     bc = []
     dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
-        for f in range(4):
+        for f in range(6):
             bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
 {con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
             .format(boundary=el.th_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
