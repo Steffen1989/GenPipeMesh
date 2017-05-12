@@ -648,7 +648,9 @@ def compl_mesh(elements, nR, nSq):
     el_list_3rd = []     # list for the elements in the 3rd quadrant
     el_list_4th = []     # list for the elements in the 4th quadrant
 
+
     for el in elements:
+        check_position(el,nR,nSq)
         # First, create elements in 2nd quadrant
         # Define the mirrored element
         mirr_el = elementclass.Element()
@@ -671,12 +673,12 @@ def compl_mesh(elements, nR, nSq):
         # Position
         mirr_el.pos = el.pos
 
-        # Boundary condition
-        # (This is reset later)
-        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
-
-        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
-        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
+#        # Boundary condition
+#        # (This is reset later)
+#        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
+#
+#        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
+#        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
         # Curvature
         mirr_el.c = np.array([el.c[0],el.c[3],el.c[2],el.c[1],\
@@ -684,6 +686,8 @@ def compl_mesh(elements, nR, nSq):
 
         # Add mirrored element to the list of elements
         el_list_2nd.append(mirr_el)
+
+
 
     for el in elements:
         # Second, create elements in third quadrant
@@ -707,12 +711,12 @@ def compl_mesh(elements, nR, nSq):
         # Position
         mirr_el.pos = el.pos
 
-        # Boundary condition
-        # (This is reset later)
-        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
-
-        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
-        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
+#        # Boundary condition
+#        # (This is reset later)
+#        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
+#
+#        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
+#        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
 
          # Curvature
         mirr_el.c = np.array([el.c[2], el.c[3], el.c[0], el.c[1],\
@@ -763,6 +767,7 @@ def compl_mesh(elements, nR, nSq):
     elements.extend(el_list_4th)
 
 
+
 def extrude(elements,nR,nSq,nz,dz):
     """ Set vertex positions, number, position of the element, and curvature
     """
@@ -793,6 +798,7 @@ def extrude(elements,nR,nSq,nz,dz):
             ext_el.c = el.c
     
             el_list_section.append(ext_el)
+
 
     elements.extend(el_list_section)
 
@@ -853,7 +859,7 @@ def set_bc_q1(elements,nR,nSq):
 
 #    for el in elements:
 #            n = el.number
-            check_position(el,nR,nSq)
+#            check_position(el,nR,nSq)
             position = el.pos
     
             if (n_in_cross <= nSq**2):   # we are in the square section
@@ -1121,6 +1127,7 @@ def set_bc_q2(elements,nR,nSq):
                     print(el.x)
                     print(el.y)
                     print(el.z)
+                    print('Pos', el.pos)
 
 
                     sys.exit(1)
@@ -1195,7 +1202,7 @@ def set_bc_q2(elements,nR,nSq):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n+nel_quarter, n-nSq*2, n-1, 0,el_front,el_back])
-                        el.bc_con_f = np.array([3, 4, 1, 0])
+                        el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_south_x'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
@@ -1205,12 +1212,12 @@ def set_bc_q2(elements,nR,nSq):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n+1, n-nSq*2, n-1, 0,el_front,el_back])
-                        el.bc_con_f = np.array([3, 4, 4, 0])
+                        el.bc_con_f = np.array([3, 4, 4, 0, f_front, f_back])
                     elif (position == 'on_low_east_wall'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n+1, n-nSq*2, n-1, 0,el_front,el_back])
-                        el.bc_con_f = np.array([3, 4, 1, 0])
+                        el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
@@ -1401,7 +1408,7 @@ def set_bc_q3(elements,nR,nSq):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]                   
                         el.bc_con_el = np.array([n-1, n-nSq*2, n-nel_quarter, 0,el_front,el_back])
-                        el.bc_con_f = np.array([3, 4, 1, 0])
+                        el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_south_x'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
@@ -1411,12 +1418,12 @@ def set_bc_q3(elements,nR,nSq):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-1, n-nSq*2, n+1, 0,el_front,el_back])
-                        el.bc_con_f = np.array([4, 4, 1, 0])
+                        el.bc_con_f = np.array([4, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_east_wall'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-1, n-nSq*2, n+1, 0,el_front,el_back])
-                        el.bc_con_f = np.array([3, 4, 1, 0])
+                        el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]

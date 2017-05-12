@@ -121,7 +121,7 @@ nek_utils.set_vertices(el_list, nR, nSq, dr, dz, dr_sq_ratio,\
 
 ## A.1.2: Set boundary conditions for faces 
 #----------------------------------------------------------------------
-nek_utils.set_bc_q1(el_list,nR,nSq)
+#nek_utils.set_bc_q1(el_list,nR,nSq)
 
 
 ## A.2: Generate the complete mesh 
@@ -135,7 +135,7 @@ nek_utils.extrude(el_list,nR,nSq,nz,dz)
 ## A.2.2: Set boundary conditions
 # (for each quarter separately)
 #----------------------------------------------------------------------
-#nek_utils.set_bc_q1(el_list,nR,nSq)
+nek_utils.set_bc_q1(el_list,nR,nSq)
 nek_utils.set_bc_q2(el_list,nR,nSq)
 nek_utils.set_bc_q3(el_list,nR,nSq)
 nek_utils.set_bc_q4(el_list,nR,nSq)
