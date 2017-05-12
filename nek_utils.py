@@ -635,7 +635,7 @@ def set_vertices(elements, nR, nSq, dr, dz, dr_sq_ratio, dr_sq_int_ratio, \
                 el.y = np.array([y0, y1, y2, y3, y4, y5, y6, y7])
                 el.z = np.array([z0, z1, z2, z3, z4, z5, z6, z7])
                 # Set concave sides to negative and convex positive
-                el.c = np.array([-c0, c1, c2, c3, -c4, c5, c6, c7])
+                el.c = np.array([c0, c1, c2, -c3, c4, c5, c6, -c7])
 
 
 def compl_mesh(elements, nR, nSq):
@@ -1675,7 +1675,7 @@ def write_curv(elements):
     # Count all the curved edges
     num_curv = 0
     for el in elements:
-        for f in range(0,4):
+        for f in range(0,8):
             if (abs(el.c[f]) > 1e-15):
                 num_curv = num_curv+1
     curv = []
@@ -1698,7 +1698,7 @@ def write_curv(elements):
 {newline:s}'
 
     for el in elements:
-        for f in range(4):
+        for f in range(8):
             if (abs(el.c[f]) > 1e-15):
                 curv.append(format_str.format(iedge=f+1, current_el=el.number,\
                 curve1=el.c[f],curve2=0.0,curve3=0.0,curve4=0.0,curve5=0.0,\
