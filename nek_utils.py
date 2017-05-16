@@ -1771,7 +1771,7 @@ def write_mesh(elements):
     
     mesh = []
     n_tot = len(elements)
-    spatial_dim = 2
+    spatial_dim = 3
     mesh.append('{0:10d} {1:10d} {2:10d} NEL,NDIM,NELV\n'.format(n_tot,spatial_dim,n_tot))
     for el in elements:      # loop through all elements
         x = el.x
@@ -1934,7 +1934,7 @@ def rea_skel():
     # write some default parameters
     f.write('****** PARAMETERS ******\n')
     f.write('   2.6100     NEKTON VERSION\n')
-    f.write('   2 DIMENSIONAL RUN\n')
+    f.write('   3 DIMENSIONAL RUN\n')
     f.write('         118 PARAMETERS FOLLOW\n')
     f.write('   1.00000     P001: DENSITY\n')
     f.write('  -5300.00     P002: VISCOSITY\n')

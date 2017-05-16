@@ -23,12 +23,14 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-nR = 8 
+#nR = 8 
+nR = 4
 #nSq = 19
-nSq = 4         # nel in square region along one side of the square
+#nSq = 4         # nel in square region along one side of the square
+nSq = 2
 #nSq = 8
-L_z = 5.00      # Length in streamwise direction z
-nz = 20          # Number of elements in streamwise direction z
+L_z = 1.00      # Length in streamwise direction z
+nz = 1          # Number of elements in streamwise direction z
 
 # For Resolution
 N = 7           # Polynomial order
