@@ -705,7 +705,7 @@ def compl_mesh(elements, nR, nSq):
                 mirr_el.x[6], mirr_el.x[7], mirr_el.x[4], mirr_el.x[5]])
         mirr_el.y = el.y*(-1)
         mirr_el.y = np.array([mirr_el.y[2], mirr_el.y[3], mirr_el.y[0], mirr_el.y[1],\
-                mirr_el.x[6], mirr_el.y[7], mirr_el.y[4], mirr_el.y[5]])
+                mirr_el.y[6], mirr_el.y[7], mirr_el.y[4], mirr_el.y[5]])
         mirr_el.z = el.z
         
         # Position

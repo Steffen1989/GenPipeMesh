@@ -153,7 +153,7 @@ nek_utils.rea_skel()
 nek_utils.write_mesh(el_list)
 ## B.2: Write curved edges
 #----------------------------------------------------------------------
-nek_utils.write_curv(el_list)
+#nek_utils.write_curv(el_list)
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
 nek_utils.write_fl_bc(el_list, nR, nSq)
