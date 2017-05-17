@@ -1907,15 +1907,36 @@ def write_curv(elements):
 def write_fl_bc(elements, nR, nSq):
     """ Write fluid boundary conditions to rea file. """
 
+    # Use different format depending on number of elements 
+    # see genmap.f
+    n_tot = len(elements)
+    if (n_tot < 1e3):
+        format_str = ' {boundary:3s}{current_el:3d}{face:3d}{con_el:14.6f}\
+{con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
+    elif (n_tot < 1e5):
+        format_str = ' {boundary:3s}{current_el:5d}{face:1d}{con_el:14.6f}\
+{con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
+    elif (n_tot < 1e6):
+        format_str = ' {boundary:3s}{current_el:5d}{face:1d}{con_el:14.6f}\
+{con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
+    else:
+        format_str = ' {boundary:3s}{current_el:11}{face:1d}{con_el:18.11f}\
+{con_f:18.11f}{zero1:18.11f}{zero2:18.11f}{zero3:18.11f}{newline:s}'
+
+
     bc = []
-    dig_n_tot = len(str(elements[-1].number))   # size of element number
+#    dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
         for f in range(6):
-            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
-{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
-            .format(boundary=el.fl_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
+#            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
+#{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
+#            .format(boundary=el.fl_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
+#            con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
+#            zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+            bc.append(format_str.format(boundary=el.fl_bc[f], current_el=el.number, face=(f+1),\
             con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
             zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+
 
     f = open('base.rea','r')
     contents = f.readlines()
@@ -1937,15 +1958,35 @@ def write_fl_bc(elements, nR, nSq):
 def write_th_bc(elements, nR, nSq):
     """ Write fluid boundary conditions to rea file. """
 
+    # Use different format depending on number of elements 
+    # see genmap.f
+    n_tot = len(elements)
+    if (n_tot < 1e3):
+        format_str = ' {boundary:3s}{current_el:3d}{face:3d}{con_el:14.6f}\
+{con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
+    elif (n_tot < 1e5):
+        format_str = ' {boundary:3s}{current_el:5d}{face:1d}{con_el:14.6f}\
+{con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
+    elif (n_tot < 1e6):
+        format_str = ' {boundary:3s}{current_el:5d}{face:1d}{con_el:14.6f}\
+{con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
+    else:
+        format_str = ' {boundary:3s}{current_el:11}{face:1d}{con_el:18.11f}\
+{con_f:18.11f}{zero1:18.11f}{zero2:18.11f}{zero3:18.11f}{newline:s}'
+
     bc = []
-    dig_n_tot = len(str(elements[-1].number))   # size of element number
+#    dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
         for f in range(6):
-            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
-{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
-            .format(boundary=el.th_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
+#            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
+#{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
+#            .format(boundary=el.th_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
+#            con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
+#            zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+            bc.append(format_str.format(boundary=el.th_bc[f], current_el=el.number, face=(f+1),\
             con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
             zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+
 
     f = open('base.rea','r')
     contents = f.readlines()

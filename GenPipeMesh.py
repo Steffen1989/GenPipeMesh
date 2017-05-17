@@ -26,8 +26,8 @@ R = 0.5         # radius
 nR = 8
 #nSq = 19       # nel in square region along one side of the square
 nSq = 4
-L_z = 1.00      # Length in streamwise direction z
-nz = 4          # Number of elements in streamwise direction z
+L_z = 5.00      # Length in streamwise direction z
+nz = 20          # Number of elements in streamwise direction z
 
 # Type of thermal BC
 th_bc_type = 't  '
