@@ -846,7 +846,7 @@ def set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section):
 # position and writing the corresponding BCs into the element's attributes.
 # (This might be a possible cause of bugs since each BC is written manually
 # depending on its location. Even though I was very careful, this approach is prone to errors.)
-def set_bc_q1(elements,nR,nSq):
+def set_bc_q1(elements,nR,nSq,th_bc_type):
     """ Set boundary conditions for each face. 
     
     This is for quadrant 1.
@@ -968,7 +968,7 @@ def set_bc_q1(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_west_y_north_wall'):
                         el.fl_bc = ['E  ','E  ','W  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','f  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ',th_bc_type,'E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-2*nSq, n+1, 0, n+nel_quarter,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 0, 2, f_front, f_back])
                     elif (position == 'on_up_west_y'):
@@ -978,12 +978,12 @@ def set_bc_q1(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_north_wall_east_edge'):
                         el.fl_bc = ['E  ','E  ','W  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','f  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ',th_bc_type,'E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-2*nSq, n+1, 0, n-1,el_front,el_back])
                         el.bc_con_f = np.array([3, 3, 0, 2, f_front, f_back])
                     elif (position == 'on_up_north_wall'):
                         el.fl_bc = ['E  ','E  ','W  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','f  ','E  ',bc_front,bc_back]                   
+                        el.th_bc = ['E  ','E  ',th_bc_type,'E  ',bc_front,bc_back]                   
                         el.bc_con_el = np.array([n-2*nSq, n+1, 0, n-1,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 0, 2, f_front, f_back])
                     elif (position == 'on_up_intern'):
@@ -1018,7 +1018,7 @@ def set_bc_q1(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_south_x_east_wall'):
                         el.fl_bc = ['E  ','W  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','f  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ',th_bc_type,'E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n+nel_quarter*3, 0, n-1, n-nSq*2,el_front,el_back])
                         el.bc_con_f = np.array([3, 0, 1, 2, f_front, f_back])
                     elif (position == 'on_low_south_x'):
@@ -1028,12 +1028,12 @@ def set_bc_q1(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_east_wall_north_edge'):
                         el.fl_bc = ['E  ','W  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','f  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ',th_bc_type,'E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n+1, 0, n-1, n-nSq*2,el_front,el_back])
                         el.bc_con_f = np.array([3, 0, 2, 2, f_front, f_back])
                     elif (position == 'on_low_east_wall'):
                         el.fl_bc = ['E  ','W  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','f  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ',th_bc_type,'E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n+1, 0, n-1, n-nSq*2,el_front,el_back])
                         el.bc_con_f = np.array([3, 0, 1, 2, f_front, f_back])
                     elif (position == 'on_low_north_edge'):
@@ -1051,7 +1051,7 @@ def set_bc_q1(elements,nR,nSq):
                     sys.exit(3)
 
 
-def set_bc_q2(elements,nR,nSq):
+def set_bc_q2(elements,nR,nSq,th_bc_type):
     """ Set boundary conditions for each face. 
     
     This is for quadrant 2.
@@ -1186,7 +1186,7 @@ def set_bc_q2(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_west_y_north_wall'):
                         el.fl_bc = ['E  ','E  ','W  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','f  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ',th_bc_type,'E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-2*nSq, n-nel_quarter, 0, n+1,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 0, 2, f_front, f_back])
                     elif (position == 'on_up_west_y'):
@@ -1196,12 +1196,12 @@ def set_bc_q2(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_north_wall_east_edge'):
                         el.fl_bc = ['E  ','E  ','W  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','f  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ',th_bc_type,'E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-2*nSq, n-1, 0, n+1,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 0, 3, f_front, f_back])
                     elif (position == 'on_up_north_wall'):
                         el.fl_bc = ['E  ','E  ','W  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','f  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ',th_bc_type,'E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-2*nSq, n-1, 0, n+1,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 0, 2, f_front, f_back])
                     elif (position == 'on_up_intern'):
@@ -1236,7 +1236,7 @@ def set_bc_q2(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_south_x_east_wall'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ','E  ',th_bc_type,bc_front,bc_back]
                         el.bc_con_el = np.array([n+nel_quarter, n-nSq*2, n-1, 0,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_south_x'):
@@ -1246,12 +1246,12 @@ def set_bc_q2(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_east_wall_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ','E  ',th_bc_type,bc_front,bc_back]
                         el.bc_con_el = np.array([n+1, n-nSq*2, n-1, 0,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 4, 0, f_front, f_back])
                     elif (position == 'on_low_east_wall'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ','E  ',th_bc_type,bc_front,bc_back]
                         el.bc_con_el = np.array([n+1, n-nSq*2, n-1, 0,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_north_edge'):
@@ -1268,7 +1268,7 @@ def set_bc_q2(elements,nR,nSq):
                     print('position assignment was not correct!')
                     sys.exit(3)
 
-def set_bc_q3(elements,nR,nSq):
+def set_bc_q3(elements,nR,nSq,th_bc_type):
     """ Set boundary conditions for each face. 
     
     This is for quadrant 3.
@@ -1394,7 +1394,7 @@ def set_bc_q3(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_west_y_north_wall'):
                         el.fl_bc = ['W  ','E  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['f  ','E  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = [th_bc_type,'E  ','E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([0, n+nel_quarter, n-2*nSq, n+1,el_front,el_back])
                         el.bc_con_f = np.array([0, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_west_y'):
@@ -1404,12 +1404,12 @@ def set_bc_q3(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_north_wall_east_edge'):
                         el.fl_bc = ['W  ','E  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['f  ','E  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = [th_bc_type,'E  ','E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([0, n-1, n-2*nSq, n+1,el_front,el_back])
                         el.bc_con_f = np.array([0, 4, 1, 1, f_front, f_back])
                     elif (position == 'on_up_north_wall'):
                         el.fl_bc = ['W  ','E  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['f  ','E  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = [th_bc_type,'E  ','E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([0, n-1, n-2*nSq, n+1,el_front,el_back])
                         el.bc_con_f = np.array([0, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_intern'):
@@ -1444,7 +1444,7 @@ def set_bc_q3(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_south_x_east_wall'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]                   
+                        el.th_bc = ['E  ','E  ','E  ',th_bc_type,bc_front,bc_back]                   
                         el.bc_con_el = np.array([n-1, n-nSq*2, n-nel_quarter, 0,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_south_x'):
@@ -1454,12 +1454,12 @@ def set_bc_q3(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_east_wall_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ','E  ',th_bc_type,bc_front,bc_back]
                         el.bc_con_el = np.array([n-1, n-nSq*2, n+1, 0,el_front,el_back])
                         el.bc_con_f = np.array([4, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_east_wall'):
                         el.fl_bc = ['E  ','E  ','E  ','W  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','E  ','E  ','f  ',bc_front,bc_back]
+                        el.th_bc = ['E  ','E  ','E  ',th_bc_type,bc_front,bc_back]
                         el.bc_con_el = np.array([n-1, n-nSq*2, n+1, 0,el_front,el_back])
                         el.bc_con_f = np.array([3, 4, 1, 0, f_front, f_back])
                     elif (position == 'on_low_north_edge'):
@@ -1476,7 +1476,7 @@ def set_bc_q3(elements,nR,nSq):
                     print('position assignment was not correct!')
                     sys.exit(3)
 
-def set_bc_q4(elements,nR,nSq):
+def set_bc_q4(elements,nR,nSq,th_bc_type):
     """ Set boundary conditions for each face. 
     
     This is for quadrant 4.
@@ -1600,7 +1600,7 @@ def set_bc_q4(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_west_y_north_wall'):
                         el.fl_bc = ['W  ','E  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['f  ','E  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = [th_bc_type,'E  ','E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([0, n+1, n-2*nSq, n-nel_quarter,el_front,el_back])
                         el.bc_con_f = np.array([0, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_west_y'):
@@ -1610,12 +1610,12 @@ def set_bc_q4(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_north_wall_east_edge'):
                         el.fl_bc = ['W  ','E  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['f  ','E  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = [th_bc_type,'E  ','E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([0, n+1, n-2*nSq, n-1,el_front,el_back])
                         el.bc_con_f = np.array([0, 1, 1, 4, f_front, f_back])
                     elif (position == 'on_up_north_wall'):
                         el.fl_bc = ['W  ','E  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['f  ','E  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = [th_bc_type,'E  ','E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([0, n+1, n-2*nSq, n-1,el_front,el_back])
                         el.bc_con_f = np.array([0, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_up_intern'):
@@ -1650,7 +1650,7 @@ def set_bc_q4(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_south_x_east_wall'):
                         el.fl_bc = ['E  ','W  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','f  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ',th_bc_type,'E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-1, 0, n-nel_quarter*3, n-nSq*2,el_front,el_back])
                         el.bc_con_f = np.array([3, 0, 1, 4, f_front, f_back])
                     elif (position == 'on_low_south_x'):
@@ -1660,12 +1660,12 @@ def set_bc_q4(elements,nR,nSq):
                         el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                     elif (position == 'on_low_east_wall_north_edge'):
                         el.fl_bc = ['E  ','W  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','f  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ',th_bc_type,'E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-1, 0, n+1, n-nSq*2,el_front,el_back])
                         el.bc_con_f = np.array([2, 0, 1, 1, f_front, f_back])
                     elif (position == 'on_low_east_wall'):
                         el.fl_bc = ['E  ','W  ','E  ','E  ',bc_front,bc_back]
-                        el.th_bc = ['E  ','f  ','E  ','E  ',bc_front,bc_back]
+                        el.th_bc = ['E  ',th_bc_type,'E  ','E  ',bc_front,bc_back]
                         el.bc_con_el = np.array([n-1, 0, n+1, n-nSq*2,el_front,el_back])
                         el.bc_con_f = np.array([3, 0, 1, 4, f_front, f_back])
                     elif (position == 'on_low_north_edge'):
@@ -2098,7 +2098,7 @@ def rea_skel():
     f.write('   1.00000        1.00000        1.00000        1.00000\n')
     f.write('         13   LOGICAL SWITCHES FOLLOW\n')
     f.write(' T      IFFLOW\n')
-    f.write(' F      IFHEAT\n')
+    f.write(' T      IFHEAT\n')
     f.write(' T      IFTRAN\n')
     f.write(' T F F F F F F F F F F  IFNAV & IFADVC (convection in P.S. fields)\n')
     f.write(' F F T T T T T T T T T T  IFTMSH (IF mesh for this field is T mesh)\n')

@@ -23,14 +23,14 @@ import re
 #----------------------------------------------------------------------
 R = 0.5         # radius
 #nR = 28         # nel in radial direction
-#nR = 8 
 nR = 8
-#nSq = 19
-#nSq = 4         # nel in square region along one side of the square
+#nSq = 19       # nel in square region along one side of the square
 nSq = 4
-#nSq = 8
 L_z = 1.00      # Length in streamwise direction z
-nz = 3          # Number of elements in streamwise direction z
+nz = 4          # Number of elements in streamwise direction z
+
+# Type of thermal BC
+th_bc_type = 't  '
 
 # For Resolution
 N = 7           # Polynomial order
@@ -137,10 +137,10 @@ nek_utils.extrude(el_list,nR,nSq,nz,dz)
 ## A.2.2: Set boundary conditions
 # (for each quarter separately)
 #----------------------------------------------------------------------
-nek_utils.set_bc_q1(el_list,nR,nSq)
-nek_utils.set_bc_q2(el_list,nR,nSq)
-nek_utils.set_bc_q3(el_list,nR,nSq)
-nek_utils.set_bc_q4(el_list,nR,nSq)
+nek_utils.set_bc_q1(el_list,nR,nSq,th_bc_type)
+nek_utils.set_bc_q2(el_list,nR,nSq,th_bc_type)
+nek_utils.set_bc_q3(el_list,nR,nSq,th_bc_type)
+nek_utils.set_bc_q4(el_list,nR,nSq,th_bc_type)
 
 
 ## B: Write the mesh to rea file
@@ -153,11 +153,11 @@ nek_utils.rea_skel()
 nek_utils.write_mesh(el_list)
 ## B.2: Write curved edges
 #----------------------------------------------------------------------
-#nek_utils.write_curv(el_list)
+nek_utils.write_curv(el_list)
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
 nek_utils.write_fl_bc(el_list, nR, nSq)
-#nek_utils.write_th_bc(el_list, nR, nSq)
+nek_utils.write_th_bc(el_list, nR, nSq)
 
 ## C: Do some checks and write a little output
 #----------------------------------------------------------------------
