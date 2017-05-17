@@ -30,7 +30,7 @@ nR = 4
 nSq = 2
 #nSq = 8
 L_z = 1.00      # Length in streamwise direction z
-nz = 1          # Number of elements in streamwise direction z
+nz = 2          # Number of elements in streamwise direction z
 
 # For Resolution
 N = 7           # Polynomial order

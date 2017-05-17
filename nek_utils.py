@@ -804,6 +804,41 @@ def extrude(elements,nR,nSq,nz,dz):
 
 
 
+def set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section):
+    """ Set periodic boundary conditions.
+    elements            :   list of elements
+    n                   :   current element number
+    cross_sec           :   current cross section number
+    n_in_cross          :   current number of element within cross section
+    nel_cross_section   :   total number of elements in each cross section
+    """
+
+    # front means on face 5
+    # back means on face 6
+    
+    if (cross_sec == 0 ):   # first cross section
+        bc_front = 'P  '
+        bc_back = 'E  '
+        el_front = elements[-1].number - nel_cross_section + n_in_cross
+        el_back = n_in_cross + nel_cross_section
+        f_front = 6
+        f_back = 5
+    elif (cross_sec == int((elements[-1].number-1)/nel_cross_section)):    # final cross section
+        bc_front = 'E  '
+        bc_back = 'P  '
+        el_front = n - nel_cross_section
+        el_back = n_in_cross
+        f_front = 6
+        f_back = 5
+    else:
+        bc_front = 'E  '
+        bc_back = 'E  '
+        el_front = n - nel_cross_section
+        el_back = n + nel_cross_section
+        f_front = 6
+        f_back = 5
+    
+    return (bc_front, bc_back, el_front, el_back, f_front, f_back)
 
 
 
@@ -827,29 +862,8 @@ def set_bc_q1(elements,nR,nSq):
         n_in_cross = el.number - cross_sec*nel_cross_section
         n = el.number
 
-        # We set periodic boundary conditions at the first cross section and the very last cross
-        # cross section
-        if (cross_sec == 0 ):   # first cross section
-            bc_front = 'P  '
-            bc_back = 'E  '
-            el_front = elements[-1].number-nel_cross_section+n
-            el_back = n + nel_cross_section
-            f_front = 0
-            f_back = 5
-        elif (cross_sec == int(elements[-2].number/nel_cross_section)):    # final cross section
-            bc_front = 'E  '
-            bc_back = 'P  '
-            el_front = n - nel_cross_section
-            el_back = n_in_cross
-            f_front = 6
-            f_back = 0
-        else:
-            bc_front = 'E  '
-            bc_back = 'E  '
-            el_front = n - nel_cross_section
-            el_back = n + nel_cross_section
-            f_front = 6
-            f_back = 5
+        (bc_front, bc_back, el_front, el_back, f_front, f_back) = \
+                set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section)
 
 
 
@@ -1034,29 +1048,8 @@ def set_bc_q2(elements,nR,nSq):
         n = el.number
 
 
-        # We set periodic boundary conditions at the first cross section and the very last cross
-        # cross section
-        if (cross_sec == 0 ):   # first cross section
-            bc_front = 'P  '
-            bc_back = 'E  '
-            el_front = elements[-1].number-nel_cross_section+n
-            el_back = n + nel_cross_section
-            f_front = 0
-            f_back = 5
-        elif (cross_sec == int(elements[-2].number/nel_cross_section)):    # final cross section
-            bc_front = 'E  '
-            bc_back = 'P  '
-            el_front = n - nel_cross_section
-            el_back = n_in_cross
-            f_front = 6
-            f_back = 0
-        else:
-            bc_front = 'E  '
-            bc_back = 'E  '
-            el_front = n - nel_cross_section
-            el_back = n + nel_cross_section
-            f_front = 6
-            f_back = 5
+        (bc_front, bc_back, el_front, el_back, f_front, f_back) = \
+                set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section)
 
 
     # only consider elements in the second quadrant
@@ -1250,29 +1243,10 @@ def set_bc_q3(elements,nR,nSq):
         n_in_cross = el.number - cross_sec*nel_cross_section
         n = el.number
 
-        # We set periodic boundary conditions at the first cross section and the very last cross
-        # cross section
-        if (cross_sec == 0 ):   # first cross section
-            bc_front = 'P  '
-            bc_back = 'E  '
-            el_front = elements[-1].number-nel_cross_section+n
-            el_back = n + nel_cross_section
-            f_front = 0
-            f_back = 5
-        elif (cross_sec == int(elements[-2].number/nel_cross_section)):    # final cross section
-            bc_front = 'E  '
-            bc_back = 'P  '
-            el_front = n - nel_cross_section
-            el_back = n_in_cross
-            f_front = 6
-            f_back = 0
-        else:
-            bc_front = 'E  '
-            bc_back = 'E  '
-            el_front = n - nel_cross_section
-            el_back = n + nel_cross_section
-            f_front = 6
-            f_back = 5
+
+        (bc_front, bc_back, el_front, el_back, f_front, f_back) = \
+                set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section)
+
 
 
         # only consider elements in the third quadrant
@@ -1456,29 +1430,9 @@ def set_bc_q4(elements,nR,nSq):
         n_in_cross = el.number - cross_sec*nel_cross_section
         n = el.number
 
-        # We set periodic boundary conditions at the first cross section and the very last cross
-        # cross section
-        if (cross_sec == 0 ):   # first cross section
-            bc_front = 'P  '
-            bc_back = 'E  '
-            el_front = elements[-1].number-nel_cross_section+n
-            el_back = n + nel_cross_section
-            f_front = 0
-            f_back = 5
-        elif (cross_sec == int(elements[-2].number/nel_cross_section)):    # final cross section
-            bc_front = 'E  '
-            bc_back = 'P  '
-            el_front = n - nel_cross_section
-            el_back = n_in_cross
-            f_front = 6
-            f_back = 0
-        else:
-            bc_front = 'E  '
-            bc_back = 'E  '
-            el_front = n - nel_cross_section
-            el_back = n + nel_cross_section
-            f_front = 6
-            f_back = 5
+
+        (bc_front, bc_back, el_front, el_back, f_front, f_back) = \
+                set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section)
 
 
         # only consider elements in the fourth quadrant
