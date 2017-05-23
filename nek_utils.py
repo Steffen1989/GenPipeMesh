@@ -2104,7 +2104,7 @@ def dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq, dr_sq_ratio,\
     print('tog_a_on_dist    = {0:10.5f}'.format(tog_a_on_dist))
 
 
-def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
+def check_mesh_quality(elements, nR, nSq, nz, R, L_z, N , Re_t):
     """ Find minimum and maximum radial and circumferential 
     element lengths and element angles (distortion from 90°).
     Find resolution of the generated mesh considering 
@@ -2186,6 +2186,9 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
                 alph_min = alpha_min
                 el_alph_min = n
 
+    # Get size of one element in streamwise direction
+    z_el = L_z/nz
+
     # Get size of the actual grid by considering GLL distribution of grid points
     # GLL distribution on reference element x in [-1, 1]
     x_gll = my_math.get_gll(N)
@@ -2229,7 +2232,11 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
 
 
 
-    dz_rec = 10/(max(d_x_gll)*0.5*Re_t)
+    # Resolution in streamwise direction z
+    z_max_plus = z_el*max(d_x_gll)*0.5*Re_t
+    z_min_plus = z_el*min(d_x_gll)*0.5*Re_t
+    
+#    dz_rec = 10/(max(d_x_gll)*0.5*Re_t)
             
 
     # Write a little output to stdout
@@ -2253,7 +2260,8 @@ def check_mesh_quality(elements, nR, nSq, R, N , Re_t):
     print('r1+              = {0:10.5f}  (< 1  )'.format(r_1_plus))
     print('r10+             = {0:10.5f}  (<10  )'.format(r_10_plus))
     print('R theta plus max = {0:10.5f}° (<  5°)'.format(r_theta_max))
-    print('R theta plus min = {0:10.5f}° (<1.5°)'.format(r_theta_min))
-    print('For z+ < 10, element length in streamwise < {0:10.5f}'.format(dz_rec))
+    print('R theta plus min = {0:10.5f}° (~1.5°)'.format(r_theta_min))
+    print('z+ max           = {0:10.5f}  (<10  )'.format(z_max_plus))
+    print('z+ min           = {0:10.5f}  (~3   )'.format(z_min_plus))
     print('Radial resolution is evaluated at vertical axis.')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')

@@ -152,4 +152,4 @@ nek_utils.dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq,\
         dr_sq_ratio, dr_sq_int_ratio, distri_on, a_interf,\
         tog_r_out_const, tog_a_on_dist)
 
-nek_utils.check_mesh_quality(el_list, nR, nSq, R, N, Re_t)
+nek_utils.check_mesh_quality(el_list, nR, nSq, nz, R, L_z, N, Re_t)
