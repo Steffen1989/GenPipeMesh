@@ -94,19 +94,6 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
 #        el.c = np.zeros(4)
         el_list.append(el)
         number = number + 1
-#### Populate list of elements: third, streamwise direction
-########
-#### Note that this leads to a different ordering of the elements
-########
-###for iz in range(1,nz):          # loop through streamwise cross sections
-###    # loop over all elements in the previous cross section
-###    for prev_el in range(nel_quarter):    
-###        el = elementclass.Element()
-###        el.number = prev_el+1 + iz*nel_cross_section
-###        el_list.append(el)
-###
-###pdb.set_trace()        
-
 
 
 

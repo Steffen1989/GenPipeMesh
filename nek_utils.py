@@ -59,31 +59,6 @@ def on_dist(nR, nSq, dr, dr_sq, distri_on):
         first_shrink = 1.0
         first_el = dr_sq_min*first_shrink
 
-#        def on_shrink(x):   
-#            """ This functions purpose is to ensure that the total 
-#            length of the onion region in radial direction is correct.
-#            It is needed for Newton-Raphson later on.
-#            """
-#
-#            sum_sin = 0
-#            for i in range(0, n_on_2):
-#                sum_sin = sum_sin + m.sin( m.pi/2 * i/(n_on_2-1) )
-#            ret = -dr*(nR-nSq) + n_on_2*first_el - (first_el -x )*\
-#                    sum_sin
-#            return ret
-#
-#        def d_on_shrink(x):   
-#            """ This is just the first derivative of on_shrink(x).
-#            """
-#            sum_sin = 0
-#            for i in range(0, n_on_2):
-#                sum_sin = sum_sin + m.sin( m.pi/2 * i/(n_on_2-1) )
-#            ret = sum_sin
-#
-#            return ret
-#        # initial guess is somewhat arbitrarily set to first_el/10
-#        dr_on_wall = my_math.newton_raphson(first_el/10, on_shrink, d_on_shrink)
-#        pdb.set_trace()
         sum_sin = 0
         for i in range(0,n_on_2):
             sum_sin = sum_sin + m.sin(m.pi/2 *i/(n_on_2-1))
@@ -492,7 +467,6 @@ def set_vertices(elements, nR, nSq, dr, dz, dr_sq_ratio, dr_sq_int_ratio, \
             a_diff = a_interface - np.sum(dr_sq)
        
             # Toggle for outermost layer having constant radial size
-#            tog_r_out_const = 0
             if (tog_r_out_const == 1):
                 # Set semi-major axis decreasing from the interface value to the last value
                 # of semi-minor axis before the wall and finally to a_wall.
@@ -505,7 +479,6 @@ def set_vertices(elements, nR, nSq, dr, dz, dr_sq_ratio, dr_sq_int_ratio, \
                     a_on[0] = b_last
                     a_on[1] = a_wall
             else:
-#                tog_a_on_dist = 1
                 if (tog_a_on_dist == 0):
                     a_on[0] = b_on[0] + a_diff*my_math.exp_dist(nR-nSq+1, 1, 0, j)
                     a_on[1] = b_on[1] + a_diff*my_math.exp_dist(nR-nSq+1, 1, 0, j+1)
@@ -673,13 +646,6 @@ def compl_mesh(elements, nR, nSq):
         # Position
         mirr_el.pos = el.pos
 
-#        # Boundary condition
-#        # (This is reset later)
-#        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
-#
-#        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
-#        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
-
         # Curvature
         mirr_el.c = np.array([el.c[0],el.c[3],el.c[2],el.c[1],\
                 el.c[4],el.c[7],el.c[6],el.c[5]])
@@ -711,13 +677,6 @@ def compl_mesh(elements, nR, nSq):
         # Position
         mirr_el.pos = el.pos
 
-#        # Boundary condition
-#        # (This is reset later)
-#        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
-#
-#        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
-#        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
-
          # Curvature
         mirr_el.c = np.array([el.c[2], el.c[3], el.c[0], el.c[1],\
                 el.c[6], el.c[7], el.c[4], el.c[5]])
@@ -747,13 +706,6 @@ def compl_mesh(elements, nR, nSq):
         # Position
         mirr_el.pos = el.pos
 
-#        # Boundary condition
-#        # (This is reset later)
-#        mirr_el.fl_bc = ['E  ','E  ','E  ','E  ']
-#
-#        mirr_el.bc_con_f = np.zeros(4)  # connected face: 1: south, 2:east, 3:north, 4:west
-#        mirr_el.bc_con_el = np.zeros(4)  # number of the connected element
-
          # Curvature
         mirr_el.c = np.array([el.c[2], el.c[1], el.c[0], el.c[3],\
                 el.c[6], el.c[5], el.c[4], el.c[7]])
@@ -769,7 +721,7 @@ def compl_mesh(elements, nR, nSq):
 
 
 def extrude(elements,nR,nSq,nz,dz):
-    """ Set vertex positions, number, position of the element, and curvature
+    """ Set vertex positions, number, position of the element, and curvature for 3D
     """
     
     el_list_section = []    # For collection the newly created elements
@@ -805,7 +757,9 @@ def extrude(elements,nR,nSq,nz,dz):
 
 
 def set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section):
-    """ Set periodic boundary conditions.
+    """ Set periodic boundary conditions at front and back sides and their 
+    corresponding connected elements and faces.
+
     elements            :   list of elements
     n                   :   current element number
     cross_sec           :   current cross section number
@@ -866,14 +820,9 @@ def set_bc_q1(elements,nR,nSq,th_bc_type):
                 set_per_bc(elements, n, cross_sec, n_in_cross, nel_cross_section)
 
 
-
         # only consider elements in the first quadrant
         if (n_in_cross<=nel_quarter):
-#        elements = elements[0:nel_quarter]
 
-#    for el in elements:
-#            n = el.number
-#            check_position(el,nR,nSq)
             position = el.pos
     
             if (n_in_cross <= nSq**2):   # we are in the square section
@@ -888,8 +837,6 @@ def set_bc_q1(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_low_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nel_quarter*3, nSq**2+(2*nSq-j)+cross_sec*nel_cross_section, \
-#                            n+nSq, n-1,el_front,el_back])
                     el.bc_con_el = np.array([n+nel_quarter*3, n+(nSq**2-(j+1)*nSq)+(2*nSq-j), \
                             n+nSq, n-1,el_front,el_back])
 
@@ -902,8 +849,6 @@ def set_bc_q1(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_up_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n-nSq, nSq**2+(2*nSq-j)+cross_sec*nel_cross_section, \
-#                            n+nSq, n-1,el_front,el_back])
                     el.bc_con_el = np.array([n-nSq, n+(nSq**2-(j+1)*nSq)+(2*nSq-j), \
                             n+nSq, n-1,el_front,el_back])
 
@@ -916,8 +861,6 @@ def set_bc_q1(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_east_col'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n-nSq, nSq**2+(2*nSq-j)+cross_sec*nel_cross_section, \
-#                            n+nSq, n-1,el_front,el_back])
                     el.bc_con_el = np.array([n-nSq, n+(nSq**2-(j+1)*nSq)+(2*nSq-j), \
                             n+nSq, n-1,el_front,el_back])
 
@@ -995,7 +938,6 @@ def set_bc_q1(elements,nR,nSq,th_bc_type):
                     if (position == 'on_low_west_sq_south_x'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n+nel_quarter*3, n+nSq*2, n-1, (k+1)*nSq,el_front,el_back])
                         el.bc_con_el = np.array([n+nel_quarter*3, n+nSq*2, n-1, n-(i+1)-(nSq-(k+1))*nSq, \
                                 el_front,el_back])
 
@@ -1003,7 +945,6 @@ def set_bc_q1(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n+1, n+nSq*2, n-1, (k+1)*nSq,el_front,el_back])
                         el.bc_con_el = np.array([n+1, n+nSq*2, n-1, n-(i+1)-(nSq-(k+1))*nSq, \
                                 el_front,el_back])
 
@@ -1011,7 +952,6 @@ def set_bc_q1(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n+1, n+nSq*2, n-1, (k+1)*nSq,el_front,el_back])
                         el.bc_con_el = np.array([n+1, n+nSq*2, n-1, n-(i+1)-(nSq-(k+1))*nSq, \
                                 el_front,el_back])
 
@@ -1075,14 +1015,7 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
 
     # only consider elements in the second quadrant
         if (n_in_cross>nel_quarter and n_in_cross<=2*nel_quarter):
-#        elements = elements[0:nel_quarter]
 
-    # only consider elements in the second quadrant
-#    elements = elements[nel_quarter:(nel_quarter*2)]
-
-#    for el in elements:
-#            n = el.number
-#            check_position(el,nR,nSq)
             position = el.pos
     
             if (n_in_cross-nel_quarter <= nSq**2):   # we are in the square section
@@ -1097,8 +1030,6 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_low_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nel_quarter, n-1, n+nSq, \
-#                            nSq**2+(2*nSq-j)+nel_quarter+cross_sec*nel_cross_section,el_front,el_back])
                     el.bc_con_el = np.array([n+nel_quarter, n-1, n+nSq, \
                             n+(nSq**2-(j+1)*nSq)+(2*nSq-j),el_front,el_back])
 
@@ -1111,8 +1042,6 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_up_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n-nSq, n-1, n+nSq, \
-#                            nSq**2+(2*nSq-j)+nel_quarter+cross_sec*nel_cross_section,el_front,el_back])
                     el.bc_con_el = np.array([n-nSq, n-1, n+nSq, \
                             n+(nSq**2-(j+1)*nSq)+(2*nSq-j),el_front,el_back])
 
@@ -1125,8 +1054,6 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_east_col'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n-nSq, n-1, n+nSq, \
-#                            nSq**2+(2*nSq-j)+nel_quarter+cross_sec*nel_cross_section,el_front,el_back])
                     el.bc_con_el = np.array([n-nSq, n-1, n+nSq, \
                             n+(nSq**2-(j+1)*nSq)+(2*nSq-j),el_front,el_back])
 
@@ -1148,15 +1075,6 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
                     el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
                 else:
                     print('position of element not found!')
-                    # Debug point
-                    print(n, position)
-                    print(el.number)
-                    print(el.x)
-                    print(el.y)
-                    print(el.z)
-                    print('Pos', el.pos)
-
-
                     sys.exit(1)
             else:                       # we are in the outer onion like region :-)
                 i = ((n_in_cross-nel_quarter-1)-nSq**2)%(nSq*2) # position in clockwise manner through each layer
@@ -1213,7 +1131,6 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
                     if (position == 'on_low_west_sq_south_x'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n+nel_quarter, (k+1)*nSq+nel_quarter, n-1, n+nSq*2,el_front,el_back])
                         el.bc_con_el = np.array([n+nel_quarter, n-(i+1)-(nSq-(k+1))*nSq, \
                                 n-1, n+nSq*2,el_front,el_back])
 
@@ -1221,7 +1138,6 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n+1, (k+1)*nSq+nel_quarter, n-1, n+nSq*2,el_front,el_back])
                         el.bc_con_el = np.array([n+1, n-(i+1)-(nSq-(k+1))*nSq, \
                                 n-1, n+nSq*2,el_front,el_back])
 
@@ -1229,7 +1145,6 @@ def set_bc_q2(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n+1, (k+1)*nSq+nel_quarter, n-1, n+nSq*2,el_front,el_back])
                         el.bc_con_el = np.array([n+1, n-(i+1)-(nSq-(k+1))*nSq, \
                                 n-1, n+nSq*2,el_front,el_back])
 
@@ -1294,12 +1209,6 @@ def set_bc_q3(elements,nR,nSq,th_bc_type):
         # only consider elements in the third quadrant
         if (n_in_cross>2*nel_quarter and n_in_cross<=3*nel_quarter):
     
-    
-    #    # only consider elements in the third quadrant
-    #    elements = elements[nel_quarter*2:(nel_quarter*3)]
-    
-    #    for el in elements:
-#            n = el.number
             position = el.pos
     
             if (n_in_cross-nel_quarter*2 <= nSq**2):   # we are in the square section
@@ -1314,8 +1223,6 @@ def set_bc_q3(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_low_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nSq, n-1, n-nel_quarter, \
-#                            nSq**2+(2*nSq-j)+nel_quarter*2+cross_sec*nel_cross_section,el_front,el_back])
                     el.bc_con_el = np.array([n+nSq, n-1, n-nel_quarter, \
                             n+(nSq**2-(j+1)*nSq)+(2*nSq-j),el_front,el_back])
 
@@ -1328,8 +1235,6 @@ def set_bc_q3(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_up_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nSq, n-1, n-nSq, \
-#                            nSq**2+(2*nSq-j)+nel_quarter*2+cross_sec*nel_cross_section,el_front,el_back])
                     el.bc_con_el = np.array([n+nSq, n-1, n-nSq, \
                             n+(nSq**2-(j+1)*nSq)+(2*nSq-j),el_front,el_back])
 
@@ -1342,8 +1247,6 @@ def set_bc_q3(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_east_col'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nSq, n-1, n-nSq, nSq**2+(2*nSq-j)+nel_quarter*2,el_front,el_back])
-#
                     el.bc_con_el = np.array([n+nSq, n-1, n-nSq, \
                             n+(nSq**2-(j+1)*nSq)+(2*nSq-j),el_front,el_back])
                     el.bc_con_f = np.array([3, 4, 1, 2, f_front, f_back])
@@ -1421,7 +1324,6 @@ def set_bc_q3(elements,nR,nSq,th_bc_type):
                     if (position == 'on_low_west_sq_south_x'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n-1, (k+1)*nSq+nel_quarter*2, n-nel_quarter, n+nSq*2,el_front,el_back])
                         el.bc_con_el = np.array([n-1, n-(i+1)-(nSq-(k+1))*nSq, \
                             n-nel_quarter, n+nSq*2,el_front,el_back])
 
@@ -1429,7 +1331,6 @@ def set_bc_q3(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n-1, (k+1)*nSq+nel_quarter*2, n+1, n+nSq*2,el_front,el_back])
                         el.bc_con_el = np.array([n-1, n-(i+1)-(nSq-(k+1))*nSq, \
                             n+1, n+nSq*2,el_front,el_back])
 
@@ -1437,7 +1338,6 @@ def set_bc_q3(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n-1, (k+1)*nSq+nel_quarter*2, n+1, n+nSq*2,el_front,el_back])
                         el.bc_con_el = np.array([n-1, n-(i+1)-(nSq-(k+1))*nSq, \
                             n+1, n+nSq*2,el_front,el_back])
 
@@ -1501,12 +1401,6 @@ def set_bc_q4(elements,nR,nSq,th_bc_type):
         # only consider elements in the fourth quadrant
         if (n_in_cross>3*nel_quarter and n_in_cross<=4*nel_quarter):
 
-
-    # only consider elements in the fourth quadrant
-#    elements = elements[nel_quarter*3:(nel_quarter*4)]
-
-#    for el in elements:
-#            n = el.number
             position = el.pos
     
             if (n_in_cross-nel_quarter*3 <= nSq**2):   # we are in the square section
@@ -1521,8 +1415,6 @@ def set_bc_q4(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_low_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nSq, nSq**2+(2*nSq-j)+nel_quarter*3+cross_sec*nel_cross_section, \
-#                            n-nel_quarter*3, n-1,el_front,el_back])
                     el.bc_con_el = np.array([n+nSq, n+(nSq**2-(j+1)*nSq)+(2*nSq-j), \
                             n-nel_quarter*3, n-1,el_front,el_back])
 
@@ -1535,8 +1427,6 @@ def set_bc_q4(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_up_right'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nSq, nSq**2+(2*nSq-j)+nel_quarter*3+cross_sec*nel_cross_section, \
-#                            n-nSq, n-1,el_front,el_back])
                     el.bc_con_el = np.array([n+nSq, n+(nSq**2-(j+1)*nSq)+(2*nSq-j), \
                             n-nSq, n-1,el_front,el_back])
 
@@ -1549,7 +1439,6 @@ def set_bc_q4(elements,nR,nSq,th_bc_type):
                 elif (position == 'sq_east_col'):
                     el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                     el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                    el.bc_con_el = np.array([n+nSq, nSq**2+(2*nSq-j)+nel_quarter*3, n-nSq, n-1,el_front,el_back])
                     el.bc_con_el = np.array([n+nSq, n+(nSq**2-(j+1)*nSq)+(2*nSq-j), \
                             n-nSq, n-1,el_front,el_back])
 
@@ -1627,7 +1516,6 @@ def set_bc_q4(elements,nR,nSq,th_bc_type):
                     if (position == 'on_low_west_sq_south_x'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n-1, n+nSq*2, n-nel_quarter*3, (k+1)*nSq+nel_quarter*3,el_front,el_back])
                         el.bc_con_el = np.array([n-1, n+nSq*2, n-nel_quarter*3, n-(i+1)-(nSq-(k+1))*nSq, \
                             el_front,el_back])
 
@@ -1635,7 +1523,6 @@ def set_bc_q4(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq_north_edge'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n-1, n+nSq*2, n+1, (k+1)*nSq+nel_quarter*3,el_front,el_back])
                         el.bc_con_el = np.array([n-1, n+nSq*2, n+1, n-(i+1)-(nSq-(k+1))*nSq, \
                             el_front,el_back])
 
@@ -1643,7 +1530,6 @@ def set_bc_q4(elements,nR,nSq,th_bc_type):
                     elif (position == 'on_low_west_sq'):
                         el.fl_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
                         el.th_bc = ['E  ','E  ','E  ','E  ',bc_front,bc_back]
-#                        el.bc_con_el = np.array([n-1, n+nSq*2, n+1, (k+1)*nSq+nel_quarter*3,el_front,el_back])
                         el.bc_con_el = np.array([n-1, n+nSq*2, n+1, n-(i+1)-(nSq-(k+1))*nSq, \
                             el_front,el_back])
 
