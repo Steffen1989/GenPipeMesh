@@ -41,11 +41,8 @@ Re_t = 180      # Friction Reynolds number
 
 # Do you want thermal boundary conditions?  
 # "True" or "False"
-if_therm = False
+if_therm = True
 
-# 3D Pipe or just 2D? (L_z and nZ are not used if 2D)
-# "2" or "3"
-dimension = 3
 
 
 # Some Input for tuning the mesh
@@ -81,7 +78,7 @@ tog_a_on_dist = 0
 ## 0: Check if input variables are OK
 #----------------------------------------------------------------------
 nek_utils.check_input(nR, nSq, nZ, R, L_z, th_bc_type, N, Re_t,\
-        if_therm, dimension)
+        if_therm)
 
 
 
@@ -154,18 +151,23 @@ nek_utils.set_bc_q4(el_list,nR,nSq,th_bc_type)
 #----------------------------------------------------------------------
 # generate a rea skeleton file
 #----------------------------------------------------------------------
-nek_utils.rea_skel(dimension, if_therm)
+nek_utils.rea_skel(2, if_therm, 'base2d.rea')
+nek_utils.rea_skel(3, if_therm, 'base3d.rea')
 ## B.1: Write vertex positions
 #----------------------------------------------------------------------
-nek_utils.write_mesh(el_list)
+nek_utils.write_mesh(el_list, nR, nSq, 2, 'base2d.rea')
+nek_utils.write_mesh(el_list, nR, nSq, 3, 'base3d.rea')
 ## B.2: Write curved edges
 #----------------------------------------------------------------------
-nek_utils.write_curv(el_list)
+nek_utils.write_curv(el_list, nR, nSq, 2, 'base2d.rea')
+nek_utils.write_curv(el_list, nR, nSq, 3, 'base3d.rea')
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
-nek_utils.write_fl_bc(el_list, nR, nSq)
+nek_utils.write_fl_bc(el_list, nR, nSq, 2, 'base2d.rea')
+nek_utils.write_fl_bc(el_list, nR, nSq, 3, 'base3d.rea')
 if (if_therm):
-    nek_utils.write_th_bc(el_list, nR, nSq)
+    nek_utils.write_th_bc(el_list, nR, nSq, 2, 'base2d.rea')
+    nek_utils.write_th_bc(el_list, nR, nSq, 3, 'base3d.rea')
 
 ## C: Do some checks and write a little output
 #----------------------------------------------------------------------

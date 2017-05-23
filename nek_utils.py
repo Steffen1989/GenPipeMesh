@@ -1689,13 +1689,16 @@ def check_position(element, nR, nSq):
             sys.exit(2)
 
 
-def write_mesh(elements):
+def write_mesh(elements, nR, nSq, dimension, fname):
     """ Write vertex locations to rea file. """
     
     mesh = []
-    n_tot = len(elements)
-    spatial_dim = 3
-    mesh.append('{0:10d} {1:10d} {2:10d} NEL,NDIM,NELV\n'.format(n_tot,spatial_dim,n_tot))
+    if (dimension>2):
+        n_tot = len(elements)
+    else:
+        n_tot = (nSq**2+(nR-nSq)*2*nSq)*4
+        elements = elements[0:n_tot]
+    mesh.append('{0:10d} {1:10d} {2:10d} NEL,NDIM,NELV\n'.format(n_tot,dimension,n_tot))
     for el in elements:      # loop through all elements
         x = el.x
         y = el.y
@@ -1708,18 +1711,19 @@ def write_mesh(elements):
             (x[0], x[1], x[2], x[3], '\n'))   # x coordinates
         mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
             (y[0], y[1], y[2], y[3], '\n'))  # y coordinates
-        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
-            (z[0], z[1], z[2], z[3], '\n'))  # z coordinates
-        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
-            (x[4], x[5], x[6], x[7], '\n'))   # x coordinates
-        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
-            (y[4], y[5], y[6], y[7], '\n'))  # y coordinates
-        mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
-            (z[4], z[5], z[6], z[7], '\n'))  # z coordinates
+        if (dimension>2):
+            mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+                (z[0], z[1], z[2], z[3], '\n'))  # z coordinates
+            mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+                (x[4], x[5], x[6], x[7], '\n'))   # x coordinates
+            mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+                (y[4], y[5], y[6], y[7], '\n'))  # y coordinates
+            mesh.append('{0: 10.6E}{1: 14.6E}{2: 14.6E}{3: 14.6E}   {4:s}'.format\
+                (z[4], z[5], z[6], z[7], '\n'))  # z coordinates
 
 
 
-    f = open('base.rea','r')
+    f = open(fname,'r')
     contents = f.readlines()
     f.close()
     
@@ -1731,24 +1735,31 @@ def write_mesh(elements):
     # and write it to rea file
     contents[line_mesh+1:line_mesh+1] = mesh
     contents = "".join(contents)
-    f = open('base.rea','w')
+    f = open(fname,'w')
     f.write(contents)
     f.close()
 
-def write_curv(elements):
+def write_curv(elements, nR, nSq, dimension, fname):
     """ Write curvature information to rea file. 
     
     Note that only curved sides are allowed to be printed here.
     """
 
+    if (dimension>2):
+        n_tot = len(elements)
+        n_edges = 8
+    else:
+        n_tot = (nSq**2+(nR-nSq)*2*nSq)*4
+        n_edges = 4
+        elements = elements[0:n_tot]
+
     # Count all the curved edges
     num_curv = 0
     for el in elements:
-        for f in range(0,8):
+        for f in range(n_edges):
             if (abs(el.c[f]) > 1e-15):
                 num_curv = num_curv+1
     curv = []
-    n_tot = len(elements)
     curv.append('{0:10d} Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n'.format(num_curv))
 
     # Check number of curved sides for correct formatting of curved side data 
@@ -1767,13 +1778,13 @@ def write_curv(elements):
 {newline:s}'
 
     for el in elements:
-        for f in range(8):
+        for f in range(n_edges):
             if (abs(el.c[f]) > 1e-15):
                 curv.append(format_str.format(iedge=f+1, current_el=el.number,\
                 curve1=el.c[f],curve2=0.0,curve3=0.0,curve4=0.0,curve5=0.0,\
                 ccurve='C',newline='\n'))
 
-    f = open('base.rea','r')
+    f = open(fname,'r')
     contents = f.readlines()
     f.close()
  
@@ -1785,17 +1796,25 @@ def write_curv(elements):
     # and write it to rea file
     contents[line_curv+1:line_curv+1] = curv
     contents = "".join(contents)
-    f = open('base.rea','w')
+    f = open(fname,'w')
     f.write(contents)
     f.close()
 
 
-def write_fl_bc(elements, nR, nSq):
+def write_fl_bc(elements, nR, nSq, dimension, fname):
     """ Write fluid boundary conditions to rea file. """
+
+    if (dimension>2):
+        n_tot = len(elements)
+        n_faces = 6
+    else:
+        n_tot = (nSq**2+(nR-nSq)*2*nSq)*4
+        n_faces = 4
+        elements = elements[0:n_tot]
+
 
     # Use different format depending on number of elements 
     # see genmap.f
-    n_tot = len(elements)
     if (n_tot < 1e3):
         format_str = ' {boundary:3s}{current_el:3d}{face:3d}{con_el:14.6f}\
 {con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
@@ -1813,18 +1832,13 @@ def write_fl_bc(elements, nR, nSq):
     bc = []
 #    dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
-        for f in range(6):
-#            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
-#{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
-#            .format(boundary=el.fl_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
-#            con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
-#            zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+        for f in range(n_faces):
             bc.append(format_str.format(boundary=el.fl_bc[f], current_el=el.number, face=(f+1),\
             con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
             zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
 
 
-    f = open('base.rea','r')
+    f = open(fname,'r')
     contents = f.readlines()
     f.close()
  
@@ -1836,17 +1850,24 @@ def write_fl_bc(elements, nR, nSq):
     # and write it to rea file
     contents[line_bc+1:line_bc+1] = bc
     contents = "".join(contents)
-    f = open('base.rea','w')
+    f = open(fname,'w')
     f.write(contents)
     f.close()
 
 
-def write_th_bc(elements, nR, nSq):
+def write_th_bc(elements, nR, nSq, dimension, fname):
     """ Write fluid boundary conditions to rea file. """
+
+    if (dimension>2):
+        n_tot = len(elements)
+        n_faces = 6
+    else:
+        n_tot = (nSq**2+(nR-nSq)*2*nSq)*4
+        n_faces = 4
+        elements = elements[0:n_tot]
 
     # Use different format depending on number of elements 
     # see genmap.f
-    n_tot = len(elements)
     if (n_tot < 1e3):
         format_str = ' {boundary:3s}{current_el:3d}{face:3d}{con_el:14.6f}\
 {con_f:14.6f}{zero1:14.6f}{zero2:14.6f}{zero3:14.6f}{newline:s}'
@@ -1863,18 +1884,13 @@ def write_th_bc(elements, nR, nSq):
     bc = []
 #    dig_n_tot = len(str(elements[-1].number))   # size of element number
     for el in elements:
-        for f in range(6):
-#            bc.append(' {boundary:3s}{current_el:{digits_n_tot}d} {face:2d}   \
-#{con_el:<07.1f}{con_f:14.5f}{zero1:14.5f}{zero2:14.5f}{zero3:14.5f}    {newline:s}'\
-#            .format(boundary=el.th_bc[f], current_el=el.number, digits_n_tot=dig_n_tot, face=(f+1),\
-#            con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
-#            zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
+        for f in range(n_faces):
             bc.append(format_str.format(boundary=el.th_bc[f], current_el=el.number, face=(f+1),\
             con_el=el.bc_con_el[f], con_f=el.bc_con_f[f],\
             zero1=0.0,zero2=0.0,zero3=0.0,newline='\n'))
 
 
-    f = open('base.rea','r')
+    f = open(fname,'r')
     contents = f.readlines()
     f.close()
  
@@ -1886,19 +1902,19 @@ def write_th_bc(elements, nR, nSq):
     # and write it to rea file
     contents[line_bc+1:line_bc+1] = bc
     contents = "".join(contents)
-    f = open('base.rea','w')
+    f = open(fname,'w')
     f.write(contents)
     f.close()
 
 
-def rea_skel(dimension, if_therm):
+def rea_skel(dimension, if_therm, fname):
     """ Create a skeleton base.rea file. """
-    reafile = 'base.rea'
+    reafile = fname
     f = open(reafile, 'w')
     # write some default parameters
     f.write('****** PARAMETERS ******\n')
     f.write('   2.6100     NEKTON VERSION\n')
-    f.write('   3 DIMENSIONAL RUN\n')
+    f.write('   {:d} DIMENSIONAL RUN\n'.format(dimension))
     f.write('         118 PARAMETERS FOLLOW\n')
     f.write('   1.00000     P001: DENSITY\n')
     f.write('  -5300.00     P002: VISCOSITY\n')
@@ -2043,8 +2059,10 @@ def rea_skel(dimension, if_therm):
 #    f.write('       0 Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE\n')
     f.write('  ***** BOUNDARY CONDITIONS *****\n')
     f.write('  ***** FLUID BOUNDARY CONDITIONS *****\n')
-#    f.write('   ***** NO THERMAL BOUNDARY CONDITIONS *****\n')
-    f.write('   ***** THERMAL BOUNDARY CONDITIONS *****\n')
+    if (if_therm):
+        f.write('   ***** THERMAL BOUNDARY CONDITIONS *****\n')
+    else:
+        f.write('   ***** NO THERMAL BOUNDARY CONDITIONS *****\n')
     f.write('    0 PRESOLVE/RESTART OPTIONS  *****\n')
     f.write('    7         INITIAL CONDITIONS *****\n')
     f.write(' C Default\n')
@@ -2267,7 +2285,7 @@ def check_mesh_quality(elements, nR, nSq, nZ, R, L_z, N , Re_t):
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
 def check_input(nR, nSq, nZ, R, L_z, th_bc_type, N, Re_t,\
-        if_therm, dimension):
+        if_therm):
     """ This function performs some inital check on the input variables."""
 
     if (not isinstance(nR, int)):
@@ -2282,9 +2300,6 @@ def check_input(nR, nSq, nZ, R, L_z, th_bc_type, N, Re_t,\
     if (not isinstance(N, int)):
         print('Error: Use integer value for N.')
         sys.exit(1)
-    if (not isinstance(dimension, int)):
-        print('Error: Use integer value for dimension.')
-        sys.exit(1)
 
 
     if (nR < 2):
@@ -2294,8 +2309,4 @@ def check_input(nR, nSq, nZ, R, L_z, th_bc_type, N, Re_t,\
         print('Error: nR has to be larger than nSq.')
         sys.exit(1)
 
-    if (dimension>3 or dimension<2):
-        print('Error: dimension has to be either "2" or "3".')
-        sys.exit(1)
-       
 
