@@ -21,20 +21,31 @@ import re
 
 # Input Variables
 #----------------------------------------------------------------------
-R = 0.5         # radius
-#nR = 28         # nel in radial direction
+# Radius
+R = 0.5
+# Number of elements in radial direction
 nR = 8
-#nSq = 19       # nel in square region along one side of the square
+# Number of elements along one side of the "square" region
 nSq = 4
-L_z = 5.00      # Length in streamwise direction z
-nz = 20          # Number of elements in streamwise direction z
+# Length of the pipe in streamwise (z) direction
+L_z = 5.00
+# Number of elements in streamwise (z) direction
+nZ = 20
 
 # Type of thermal BC
 th_bc_type = 't  '
 
-# For Resolution
+# In order to check the resolution requirements
 N = 7           # Polynomial order
 Re_t = 180      # Friction Reynolds number
+
+# Do you want thermal boundary conditions?  
+# "True" or "False"
+if_therm = False
+
+# 3D Pipe or just 2D? (L_z and nZ are not used if 2D)
+# "2" or "3"
+dimension = 3
 
 
 # Some Input for tuning the mesh
@@ -66,11 +77,19 @@ tog_r_out_const = 0
 tog_a_on_dist = 0
 
 
+
+## 0: Check if input variables are OK
+#----------------------------------------------------------------------
+nek_utils.check_input(nR, nSq, nZ, R, L_z, th_bc_type, N, Re_t,\
+        if_therm, dimension)
+
+
+
 # Define some global variables here:
 #----------------------------------------------------------------------
 dr_nominal = R/nR       # nominal length of one element
 dr = dr_nominal
-dz = L_z/nz
+dz = L_z/nZ
 
 el_list = []    # list of all elements
 # number of elements in one cross section
@@ -97,6 +116,7 @@ for i in range(nR-nSq):     # loop through each onion like layer outwards
 
 
 
+
 ## A: Generate the mesh
 #----------------------------------------------------------------------
 ## A.1: Generate the mesh for a quarter section
@@ -118,7 +138,7 @@ nek_utils.set_vertices(el_list, nR, nSq, dr, dz, dr_sq_ratio,\
 ## A.2.1: Set vertex positions
 #----------------------------------------------------------------------
 nek_utils.compl_mesh(el_list,nR,nSq)
-nek_utils.extrude(el_list,nR,nSq,nz,dz)
+nek_utils.extrude(el_list,nR,nSq,nZ,dz)
 
 
 ## A.2.2: Set boundary conditions
@@ -134,7 +154,7 @@ nek_utils.set_bc_q4(el_list,nR,nSq,th_bc_type)
 #----------------------------------------------------------------------
 # generate a rea skeleton file
 #----------------------------------------------------------------------
-nek_utils.rea_skel()
+nek_utils.rea_skel(dimension, if_therm)
 ## B.1: Write vertex positions
 #----------------------------------------------------------------------
 nek_utils.write_mesh(el_list)
@@ -144,7 +164,8 @@ nek_utils.write_curv(el_list)
 ## B.3: Write boundary conditions
 #----------------------------------------------------------------------
 nek_utils.write_fl_bc(el_list, nR, nSq)
-nek_utils.write_th_bc(el_list, nR, nSq)
+if (if_therm):
+    nek_utils.write_th_bc(el_list, nR, nSq)
 
 ## C: Do some checks and write a little output
 #----------------------------------------------------------------------
@@ -152,4 +173,4 @@ nek_utils.dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq,\
         dr_sq_ratio, dr_sq_int_ratio, distri_on, a_interf,\
         tog_r_out_const, tog_a_on_dist)
 
-nek_utils.check_mesh_quality(el_list, nR, nSq, nz, R, L_z, N, Re_t)
+nek_utils.check_mesh_quality(el_list, nR, nSq, nZ, R, L_z, N, Re_t)

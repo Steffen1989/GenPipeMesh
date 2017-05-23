@@ -720,7 +720,7 @@ def compl_mesh(elements, nR, nSq):
 
 
 
-def extrude(elements,nR,nSq,nz,dz):
+def extrude(elements,nR,nSq,nZ,dz):
     """ Set vertex positions, number, position of the element, and curvature for 3D
     """
     
@@ -728,8 +728,8 @@ def extrude(elements,nR,nSq,nz,dz):
 
     nel_cross_section = (nSq**2+(nR-nSq)*nSq*2)*4
 
-    # Generate nz-1 new cross sections
-    for z in range(1,nz):
+    # Generate nZ-1 new cross sections
+    for z in range(1,nZ):
         # Loop over all elements in the first cross section
         for el in elements: 
             # Define an extruded element
@@ -1891,7 +1891,7 @@ def write_th_bc(elements, nR, nSq):
     f.close()
 
 
-def rea_skel():
+def rea_skel(dimension, if_therm):
     """ Create a skeleton base.rea file. """
     reafile = 'base.rea'
     f = open(reafile, 'w')
@@ -2104,7 +2104,7 @@ def dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq, dr_sq_ratio,\
     print('tog_a_on_dist    = {0:10.5f}'.format(tog_a_on_dist))
 
 
-def check_mesh_quality(elements, nR, nSq, nz, R, L_z, N , Re_t):
+def check_mesh_quality(elements, nR, nSq, nZ, R, L_z, N , Re_t):
     """ Find minimum and maximum radial and circumferential 
     element lengths and element angles (distortion from 90°).
     Find resolution of the generated mesh considering 
@@ -2187,7 +2187,7 @@ def check_mesh_quality(elements, nR, nSq, nz, R, L_z, N , Re_t):
                 el_alph_min = n
 
     # Get size of one element in streamwise direction
-    z_el = L_z/nz
+    z_el = L_z/nZ
 
     # Get size of the actual grid by considering GLL distribution of grid points
     # GLL distribution on reference element x in [-1, 1]
@@ -2265,3 +2265,37 @@ def check_mesh_quality(elements, nR, nSq, nz, R, L_z, N , Re_t):
     print('z+ min           = {0:10.5f}  (~3   )'.format(z_min_plus))
     print('Radial resolution is evaluated at vertical axis.')
     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+
+def check_input(nR, nSq, nZ, R, L_z, th_bc_type, N, Re_t,\
+        if_therm, dimension):
+    """ This function performs some inital check on the input variables."""
+
+    if (not isinstance(nR, int)):
+        print('Error: Use integer value for nR.')
+        sys.exit(1)
+    if (not isinstance(nSq, int)):
+        print('Error: Use integer value for nSq.')
+        sys.exit(1)
+    if (not isinstance(nZ, int)):
+        print('Error: Use integer value for nZ.')
+        sys.exit(1)
+    if (not isinstance(N, int)):
+        print('Error: Use integer value for N.')
+        sys.exit(1)
+    if (not isinstance(dimension, int)):
+        print('Error: Use integer value for dimension.')
+        sys.exit(1)
+
+
+    if (nR < 2):
+        print('Error: Use at least 2 elements in radial directin (nR).')
+        sys.exit(1)
+    if (nR <= nSq):
+        print('Error: nR has to be larger than nSq.')
+        sys.exit(1)
+
+    if (dimension>3 or dimension<2):
+        print('Error: dimension has to be either "2" or "3".')
+        sys.exit(1)
+       
+
