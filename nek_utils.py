@@ -2041,7 +2041,11 @@ def rea_skel(dimension, if_therm, fname):
     f.write('   1.00000        1.00000        1.00000        1.00000\n')
     f.write('         13   LOGICAL SWITCHES FOLLOW\n')
     f.write(' T      IFFLOW\n')
-    f.write(' T      IFHEAT\n')
+    if (if_therm):
+        f.write('   ***** THERMAL BOUNDARY CONDITIONS *****\n')
+        f.write(' T      IFHEAT\n')
+    else:
+        f.write(' F      IFHEAT\n')
     f.write(' T      IFTRAN\n')
     f.write(' T F F F F F F F F F F  IFNAV & IFADVC (convection in P.S. fields)\n')
     f.write(' F F T T T T T T T T T T  IFTMSH (IF mesh for this field is T mesh)\n')
@@ -2099,7 +2103,7 @@ def rea_skel(dimension, if_therm, fname):
     f.close()
 
 
-def dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq, dr_sq_ratio,\
+def dump_input_vars(R, nR, nSq, nZ, L_z, N, Re_t, stretch_sq, dr_sq_ratio,\
         dr_sq_int_ratio, distri_on, a_interf,\
         tog_r_out_const, tog_a_on_dist):
     """ Print all the input variables so the output can be 
@@ -2110,6 +2114,8 @@ def dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq, dr_sq_ratio,\
     print('----------------')
     print('R                = {0:10.5f}'.format(R))
     print('nR               = {0:10.5f}'.format(nR))
+    print('nZ               = {0:10.5f}'.format(nZ))
+    print('L_z              = {0:10.5f}'.format(L_z))
     print('nSq              = {0:10.5f}'.format(nSq))
     print('N                = {0:10.5f}'.format(N))
     print('Re_t             = {0:10.5f}'.format(Re_t))
@@ -2211,7 +2217,7 @@ def check_mesh_quality(elements, nR, nSq, nZ, R, L_z, N , Re_t):
     # GLL distribution on reference element x in [-1, 1]
     x_gll = my_math.get_gll(N)
     # Distance between two points on ref. element
-    d_x_gll = x_gll[0:-2] - x_gll[1:-1]
+    d_x_gll = x_gll[0:-1] - x_gll[1:]
     
     r_plus_min = l_r_min*min(d_x_gll)*0.5*Re_t
     r_plus_max = l_r_max*max(d_x_gll)*0.5*Re_t
@@ -2223,7 +2229,15 @@ def check_mesh_quality(elements, nR, nSq, nZ, R, L_z, N , Re_t):
             *min(d_x_gll)*0.5*Re_t
 
     # First 10 point away from the wall is in which element?
+    pdb.set_trace()
     away_from_wall = int(m.ceil(10 / (N+1)))
+    # Remaining pts up to 10th point x-th element
+    rem_pts = 10 % (N+1)*away_from_wall
+    # Reset rem_pts in case the element is full
+    if (rem_pts == 0):
+        rem_pts = (N+1)
+
+
     while away_from_wall > 1:
         # Cumulative elements' radial length at the wall closer than 10th pt
         cum_el = cum_el + elements[w_ind].y[3] - elements[w_ind].y[0]            
@@ -2232,8 +2246,6 @@ def check_mesh_quality(elements, nR, nSq, nZ, R, L_z, N , Re_t):
         away_from_wall = away_from_wall -1
         w_ind = w_ind - 2*nSq
 
-    # Remaining pts up to 10th point x-th element
-    rem_pts = 10 % (N+1)
     r_10_plus = (cum_el + \
             (elements[w_ind].y[3] - elements[w_ind].y[0])* \
             np.sum(d_x_gll[:rem_pts])*0.5)*Re_t

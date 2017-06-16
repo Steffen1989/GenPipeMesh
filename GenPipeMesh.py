@@ -24,24 +24,24 @@ import re
 # Radius
 R = 0.5
 # Number of elements in radial direction
-nR = 8
+nR = 9
 # Number of elements along one side of the "square" region
-nSq = 4
+nSq = 5
 # Length of the pipe in streamwise (z) direction
 L_z = 5.00
 # Number of elements in streamwise (z) direction
-nZ = 20
+nZ =  30
 
 # Type of thermal BC
 th_bc_type = 't  '
 
 # In order to check the resolution requirements
-N = 7           # Polynomial order
-Re_t = 180      # Friction Reynolds number
+N = 11           # Polynomial order
+Re_t = 360      # Friction Reynolds number
 
 # Do you want thermal boundary conditions?  
 # "True" or "False"
-if_therm = True
+if_therm = False
 
 
 
@@ -49,19 +49,20 @@ if_therm = True
 #----------------------------------------------------------------------
 
 # Stretch nominal value of dr in square by this factor
-stretch_sq = 1.3    
+stretch_sq = 1.2    
 # Min to max element length along axis in square
-dr_sq_ratio = 0.80  
+dr_sq_ratio = 0.9  
 
-# Ratio of min to max element x (resp. y) component along intersection
+# Ratio of min to max element of x (resp. y) component along intersection
 # Note that this is not the real length but its projection along x-, 
 # respective y-axis
-dr_sq_int_ratio = 0.9    
+dr_sq_int_ratio = 0.8    
 # First xx in onion region is increasing and (xx-1) is decreasing
 distri_on = 0.0     
 
 # Semi-major axis at the interface betwenn square and onion region
 # Note: semi-minor axis is defined by position of element along y-axis
+#a_interf = 0.57
 a_interf = 0.57
 
 # Keep the outermost onion layer constant: 
@@ -171,7 +172,7 @@ if (if_therm):
 
 ## C: Do some checks and write a little output
 #----------------------------------------------------------------------
-nek_utils.dump_input_vars(R, nR, nSq, N, Re_t, stretch_sq,\
+nek_utils.dump_input_vars(R, nR, nSq, nZ, L_z, N, Re_t, stretch_sq,\
         dr_sq_ratio, dr_sq_int_ratio, distri_on, a_interf,\
         tog_r_out_const, tog_a_on_dist)
 
