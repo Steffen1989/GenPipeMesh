@@ -2229,7 +2229,6 @@ def check_mesh_quality(elements, nR, nSq, nZ, R, L_z, N , Re_t):
             *min(d_x_gll)*0.5*Re_t
 
     # First 10 point away from the wall is in which element?
-    pdb.set_trace()
     away_from_wall = int(m.ceil(10 / (N+1)))
     # Remaining pts up to 10th point x-th element
     rem_pts = 10 % (N+1)*away_from_wall

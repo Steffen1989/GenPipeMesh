@@ -36,7 +36,7 @@ nZ =  30
 th_bc_type = 't  '
 
 # In order to check the resolution requirements
-N = 11           # Polynomial order
+N = 9           # Polynomial order
 Re_t = 360      # Friction Reynolds number
 
 # Do you want thermal boundary conditions?  
