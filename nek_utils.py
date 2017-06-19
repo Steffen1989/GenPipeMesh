@@ -482,9 +482,13 @@ def set_vertices(elements, nR, nSq, dr, dz, dr_sq_ratio, dr_sq_int_ratio, \
                 if (tog_a_on_dist == 0):
                     a_on[0] = b_on[0] + a_diff*my_math.exp_dist(nR-nSq+1, 1, 0, j)
                     a_on[1] = b_on[1] + a_diff*my_math.exp_dist(nR-nSq+1, 1, 0, j+1)
-                else:
+                elif (tog_a_on_dist == 1):
                     a_on[0] = b_on[0] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j)
                     a_on[1] = b_on[1] + a_diff*my_math.sin_dist(nR-nSq+1, 1, 0, j+1)
+                elif (tog_a_on_dist == 2):
+                    a_on[0] = b_on[0] + a_diff*my_math.lin_decay(nR-nSq+1, 1, 0, j)
+                    a_on[1] = b_on[1] + a_diff*my_math.lin_decay(nR-nSq+1, 1, 0, j+1)
+
 
 
             # Straight line defined by points on intersection square-onion and equidistantly

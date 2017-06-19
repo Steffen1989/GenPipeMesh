@@ -72,7 +72,26 @@ def exp_dist(N, start, end, i):
         r = (end - start)/(1-m.exp(-(N-1)))*(1-m.exp(-i)) + start
 
     return r
+
+def lin_decay(N, start, end, i):
+    """ Linear decay distribution 
+
+    N       : number of steps
+    start   : starting value at i=0
+    end     : final value at i=N-1
+
+    """
+
+    if (end > start):   # swap
+        start, end = end, start
     
+    if (i == 0):    # catch division by zero
+        r = start
+    else:
+        r = (end - start)/(N-1)*(i) + start
+
+    return r
+   
 
 
 def ellipse(a,b,c,x):

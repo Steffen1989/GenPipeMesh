@@ -24,20 +24,20 @@ import re
 # Radius
 R = 0.5
 # Number of elements in radial direction
-nR = 9
+nR = 15
 # Number of elements along one side of the "square" region
-nSq = 5
+nSq = 10
 # Length of the pipe in streamwise (z) direction
 L_z = 5.00
 # Number of elements in streamwise (z) direction
-nZ =  30
+nZ =  60
 
 # Type of thermal BC
 th_bc_type = 't  '
 
 # In order to check the resolution requirements
 N = 9           # Polynomial order
-Re_t = 360      # Friction Reynolds number
+Re_t = 720      # Friction Reynolds number
 
 # Do you want thermal boundary conditions?  
 # "True" or "False"
@@ -49,30 +49,32 @@ if_therm = False
 #----------------------------------------------------------------------
 
 # Stretch nominal value of dr in square by this factor
-stretch_sq = 1.2    
+stretch_sq = 1.10
 # Min to max element length along axis in square
-dr_sq_ratio = 0.9  
+dr_sq_ratio = 0.8  
 
 # Ratio of min to max element of x (resp. y) component along intersection
 # Note that this is not the real length but its projection along x-, 
 # respective y-axis
 dr_sq_int_ratio = 0.8    
 # First xx in onion region is increasing and (xx-1) is decreasing
-distri_on = 0.0     
+distri_on = 0.5     
 
 # Semi-major axis at the interface betwenn square and onion region
 # Note: semi-minor axis is defined by position of element along y-axis
 #a_interf = 0.57
-a_interf = 0.57
+a_interf = 0.60
 
 # Keep the outermost onion layer constant: 
 # 0 = not const., 1 = const.
 tog_r_out_const = 0
 # Use exp. or sin distribution for semi-major axis in onion region
 # exp gives a sharper decrease, hence more circle like shape in 
-# the first onion layers.
-# 0 = exp, 1 = sin
-tog_a_on_dist = 0
+# the first onion layers, which can be good for low Re-flows with few
+# elements in onion region. For higher Re and more elements in onion 
+# region "sin" is recommended
+# 0 = exp, 1 = sin, 2 = linear
+tog_a_on_dist = 1
 
 
 
